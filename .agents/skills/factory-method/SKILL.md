@@ -311,3 +311,73 @@ public final class EmailNotificationCreator extends NotificationCreator {
 ```
 
 Ajustar la versión de Java (`maven.compiler.source/target`) si el usuario especifica otra.
+
+### 4.1 Interfaz local con botones (GUI de demostración)
+
+Todo proyecto generado incluye una **interfaz gráfica local ejecutable** — una
+ventana con botones que permite invocar la factory sin consola ni tests, usando
+`javax.swing` (nativo del JDK, cero dependencias). No es parte del patrón GoF, es
+una herramienta de verificación manual para quien reciba el proyecto.
+
+Convención de nombre: `<Domain>Gui.java` (ej. `NotificationGui.java`), en el mismo
+paquete que el resto del dominio, con un `main(String[] args)` que lanza la ventana.
+
+**Regla clave: la interfaz debe adaptarse al caso, no usar siempre el mismo layout.**
+Antes de generarla, analizar cómo se crea cada `ConcreteProduct`:
+
+- **Si el factory method no requiere parámetros de entrada** (o los resuelve
+  internamente): un botón por variante del `enum`. Al presionar, se llama a la
+  factory y el resultado se muestra en un área de texto/log en la misma ventana.
+- **Si el factory method requiere datos del usuario** (ej. destinatario, mensaje,
+  cantidad): agregar los `JTextField`/`JComboBox` necesarios arriba de los botones,
+  validar que no estén vacíos antes de habilitar el botón, y mostrar el error en la
+  misma ventana (nunca un `System.out` silencioso) si falta un dato.
+- **Si hay muchas variantes (7+)**: no generar un botón por cada una — usar un
+  `JComboBox` para seleccionar el tipo y un solo botón "Crear", para no saturar la
+  ventana. Este es el mismo criterio de simplicidad que en la sección 3: elegir el
+  layout más simple que cubra el caso, no el más elaborado.
+- La ventana nunca contiene lógica de negocio: solo arma el input, llama a la
+  factory y muestra el resultado. Toda la lógica real vive en las clases del dominio.
+- Debe ejecutarse con `mvn compile exec:java -Dexec.mainClass="com.<company>.<domain>.<Domain>Gui"`
+  (agregar `exec-maven-plugin` al `pom.xml` si no está, en vez de pedirle al usuario
+  que lo instale manualmente).
+
+Ejemplo mínimo para el caso "sin parámetros, pocas variantes" (adaptar, no copiar
+literal — para el caso "con parámetros" o "muchas variantes" seguir las reglas de
+arriba, no este layout fijo):
+
+```java
+package com.example.notification;
+
+import javax.swing.*;
+import java.awt.*;
+
+public final class NotificationGui {
+
+    public static void main(String[] args) {
+        JFrame frame = new JFrame("Notification Factory Demo");
+        JTextArea log = new JTextArea(10, 30);
+        log.setEditable(false);
+
+        JPanel buttons = new JPanel();
+        for (NotificationFactory.NotificationType type : NotificationFactory.NotificationType.values()) {
+            JButton button = new JButton(type.name());
+            // One click = one factory call; the button never builds the Notification itself.
+            button.addActionListener(e -> {
+                Notification notification = NotificationFactory.create(type);
+                notification.send("user@example.com", "Hello from " + type);
+                log.append("Created: " + notification.getClass().getSimpleName() + "\n");
+            });
+            buttons.add(button);
+        }
+
+        frame.setLayout(new BorderLayout());
+        frame.add(buttons, BorderLayout.NORTH);
+        frame.add(new JScrollPane(log), BorderLayout.CENTER);
+        frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        frame.pack();
+        frame.setLocationRelativeTo(null);
+        frame.setVisible(true);
+    }
+}
+```

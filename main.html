@@ -3,885 +3,959 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>GlobalDocs Solutions - Document Processor Terminal</title>
+    <title>GlobalDocs Solutions - Factory Method Document Processor</title>
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
+        :root {
+            --bg-primary: #ffffff;
+            --bg-secondary: #f0f4ff;
+            --bg-panel: #fafbff;
+            --border: #d0d8f0;
+            --text-primary: #1a1a2e;
+            --text-secondary: #4a5568;
+            --text-muted: #718096;
+            --accent-blue: #3b82f6;
+            --accent-green: #10b981;
+            --accent-orange: #f59e0b;
+            --accent-red: #ef4444;
+            --accent-purple: #8b5cf6;
+            --accent-cyan: #06b6d4;
+            --success-bg: #ecfdf5;
+            --success-border: #10b981;
+            --error-bg: #fef2f2;
+            --error-border: #ef4444;
+            --info-bg: #eff6ff;
+            --info-border: #3b82f6;
+            --warning-bg: #fffbeb;
+            --warning-border: #f59e0b;
+            --shadow-sm: 0 1px 3px rgba(0,0,0,0.08);
+            --shadow-md: 0 4px 12px rgba(0,0,0,0.1);
+            --radius: 10px;
         }
 
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
         body {
-            font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
-            background-color: #1a1a2e;
-            color: #00ff88;
+            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+            background: linear-gradient(135deg, #e8f0fe 0%, #f0e6ff 50%, #e6fff9 100%);
+            color: var(--text-primary);
             height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 16px;
+        }
+
+        .app-container {
+            width: 100%;
+            max-width: 1200px;
+            height: calc(100vh - 32px);
+            background: var(--bg-primary);
+            border-radius: 16px;
+            box-shadow: 0 8px 32px rgba(59,130,246,0.15), 0 2px 8px rgba(0,0,0,0.05);
             display: flex;
             flex-direction: column;
             overflow: hidden;
+            border: 1px solid var(--border);
         }
 
-        .terminal-header {
-            background: linear-gradient(90deg, #0f0f23 0%, #1a1a2e 100%);
-            border-bottom: 2px solid #00ff88;
-            padding: 10px 20px;
+        /* ===== HEADER ===== */
+        .header {
+            background: linear-gradient(135deg, #3b82f6 0%, #8b5cf6 50%, #06b6d4 100%);
+            padding: 14px 24px;
             display: flex;
             justify-content: space-between;
             align-items: center;
             flex-shrink: 0;
         }
 
-        .terminal-title {
-            font-size: 14px;
-            font-weight: bold;
+        .header-title {
+            color: #fff;
+            font-size: 15px;
+            font-weight: 700;
+            letter-spacing: 1px;
             text-transform: uppercase;
-            letter-spacing: 2px;
         }
 
-        .terminal-status {
-            display: flex;
-            gap: 15px;
+        .header-badge {
+            color: rgba(255,255,255,0.85);
             font-size: 11px;
+            background: rgba(255,255,255,0.2);
+            padding: 4px 12px;
+            border-radius: 20px;
+            backdrop-filter: blur(4px);
         }
 
-        .status-item {
+        .status-bar {
+            display: flex;
+            gap: 12px;
+            align-items: center;
+        }
+
+        .status-pill {
             display: flex;
             align-items: center;
-            gap: 5px;
+            gap: 6px;
+            background: rgba(255,255,255,0.2);
+            color: #fff;
+            font-size: 11px;
+            font-weight: 600;
+            padding: 5px 12px;
+            border-radius: 20px;
+            backdrop-filter: blur(4px);
         }
 
         .status-dot {
-            width: 8px;
-            height: 8px;
+            width: 7px;
+            height: 7px;
             border-radius: 50%;
-            background: #00ff88;
+            background: #34d399;
+            box-shadow: 0 0 6px #34d399;
             animation: pulse 2s infinite;
         }
 
         @keyframes pulse {
-            0%, 100% { opacity: 1; }
-            50% { opacity: 0.5; }
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.6; transform: scale(0.9); }
         }
 
-        .terminal-body {
+        /* ===== BODY ===== */
+        .body {
             flex: 1;
+            display: flex;
+            overflow: hidden;
+        }
+
+        .panel {
             display: flex;
             flex-direction: column;
             overflow: hidden;
         }
 
-        .panel {
-            border-right: 1px solid #00ff88;
-            background: #0f0f23;
-        }
-
-        .panel:last-child {
-            border-right: none;
-        }
-
         .panel-header {
-            background: #16213e;
-            padding: 8px 12px;
-            border-bottom: 1px solid #00ff88;
+            padding: 10px 16px;
             font-size: 11px;
-            font-weight: bold;
+            font-weight: 700;
             text-transform: uppercase;
             letter-spacing: 1px;
+            color: var(--text-muted);
+            background: var(--bg-secondary);
+            border-bottom: 2px solid var(--border);
+            flex-shrink: 0;
         }
 
         .panel-content {
             flex: 1;
             overflow-y: auto;
-            padding: 10px;
-            font-size: 12px;
-            line-height: 1.6;
-        }
-
-        .panels-container {
-            display: flex;
-            flex: 1;
-            overflow: hidden;
+            padding: 12px;
         }
 
         .queue-panel {
-            width: 35%;
-            min-width: 300px;
+            width: 340px;
+            border-right: 1px solid var(--border);
+            background: var(--bg-panel);
         }
 
         .results-panel {
-            width: 65%;
+            flex: 1;
+            background: var(--bg-primary);
         }
 
-        .document-item {
-            padding: 6px 10px;
-            margin: 4px 0;
-            background: rgba(0, 255, 136, 0.1);
-            border-left: 3px solid #00ff88;
-            border-radius: 0 4px 4px 0;
+        /* ===== QUEUE ITEMS ===== */
+        .queue-item {
+            background: #fff;
+            border: 1px solid var(--border);
+            border-left: 4px solid var(--accent-orange);
+            border-radius: 8px;
+            padding: 10px 12px;
+            margin-bottom: 8px;
             transition: all 0.2s;
+            box-shadow: var(--shadow-sm);
         }
 
-        .document-item:hover {
-            background: rgba(0, 255, 136, 0.2);
+        .queue-item:hover {
+            box-shadow: var(--shadow-md);
+            transform: translateY(-1px);
         }
 
-        .document-item.pending {
-            border-left-color: #ffaa00;
+        .queue-item-name {
+            font-weight: 700;
+            color: var(--text-primary);
+            font-size: 13px;
+            margin-bottom: 4px;
         }
 
-        .document-item.success {
-            border-left-color: #00ff88;
+        .queue-item-meta {
+            font-size: 11px;
+            color: var(--text-muted);
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
         }
 
-        .document-item.error {
-            border-left-color: #ff3366;
+        .meta-tag {
+            background: var(--bg-secondary);
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-weight: 600;
         }
 
-        .document-name {
-            font-weight: bold;
-            color: #ffffff;
+        .meta-tag.country { background: #ede9fe; color: #7c3aed; }
+        .meta-tag.type { background: #dbeafe; color: #2563eb; }
+        .meta-tag.format { background: #d1fae5; color: #059669; }
+
+        /* ===== RESULT ITEMS ===== */
+        .result-item {
+            padding: 8px 12px;
+            margin-bottom: 6px;
+            border-radius: 8px;
+            font-size: 12.5px;
+            line-height: 1.5;
+            font-family: 'Consolas', 'Monaco', monospace;
+            border-left: 4px solid transparent;
+            animation: slideIn 0.2s ease-out;
         }
 
-        .document-meta {
+        @keyframes slideIn {
+            from { opacity: 0; transform: translateX(-8px); }
+            to { opacity: 1; transform: translateX(0); }
+        }
+
+        .result-item.success {
+            background: var(--success-bg);
+            border-left-color: var(--success-border);
+            color: #065f46;
+        }
+
+        .result-item.error {
+            background: var(--error-bg);
+            border-left-color: var(--error-border);
+            color: #991b1b;
+        }
+
+        .result-item.info {
+            background: var(--info-bg);
+            border-left-color: var(--info-border);
+            color: #1e40af;
+        }
+
+        .result-item.warning {
+            background: var(--warning-bg);
+            border-left-color: var(--warning-border);
+            color: #92400e;
+        }
+
+        .result-label {
+            font-weight: 700;
             font-size: 10px;
-            color: #88ccaa;
-            margin-top: 2px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 2px;
         }
 
-        .result-line {
-            padding: 4px 8px;
-            margin: 2px 0;
-            border-radius: 3px;
-            font-family: inherit;
-            white-space: pre-wrap;
-            word-break: break-word;
+        .result-label.success { color: #059669; }
+        .result-label.error { color: #dc2626; }
+        .result-label.info { color: #2563eb; }
+        .result-label.warning { color: #d97706; }
+
+        .summary-box {
+            background: linear-gradient(135deg, #eff6ff 0%, #ede9fe 100%);
+            border: 1px solid var(--accent-blue);
+            border-radius: 10px;
+            padding: 14px 18px;
+            margin: 12px 0;
+            font-weight: 700;
+            font-size: 13px;
+            color: var(--accent-blue);
+            text-align: center;
+            box-shadow: var(--shadow-sm);
         }
 
-        .result-line.success {
-            background: rgba(0, 255, 136, 0.15);
-            border-left: 3px solid #00ff88;
-        }
-
-        .result-line.error {
-            background: rgba(255, 51, 102, 0.15);
-            border-left: 3px solid #ff3366;
-        }
-
-        .result-line.info {
-            background: rgba(0, 170, 255, 0.15);
-            border-left: 3px solid #00aaff;
-        }
-
-        .result-line.warning {
-            background: rgba(255, 170, 0, 0.15);
-            border-left: 3px solid #ffaa00;
-        }
-
-        .terminal-input-area {
-            background: #0f0f23;
-            border-top: 2px solid #00ff88;
-            padding: 10px 20px;
+        /* ===== INPUT AREA ===== */
+        .input-area {
+            border-top: 2px solid var(--border);
+            background: var(--bg-secondary);
+            padding: 12px 20px;
             flex-shrink: 0;
         }
 
-        .input-line {
+        .input-row {
             display: flex;
             align-items: center;
             gap: 10px;
         }
 
-        .prompt {
-            color: #00ff88;
-            font-weight: bold;
+        .input-prompt {
+            background: linear-gradient(135deg, #3b82f6, #8b5cf6);
+            color: #fff;
+            font-weight: 700;
+            padding: 6px 14px;
+            border-radius: 8px;
+            font-size: 13px;
             white-space: nowrap;
         }
 
         .command-input {
             flex: 1;
-            background: transparent;
-            border: none;
+            background: #fff;
+            border: 2px solid var(--border);
             outline: none;
-            color: #00ff88;
-            font-family: inherit;
+            color: var(--text-primary);
+            font-family: 'Consolas', 'Monaco', monospace;
             font-size: 13px;
-            caret-color: #00ff88;
+            padding: 8px 14px;
+            border-radius: 8px;
+            transition: border-color 0.2s;
         }
 
-        .command-input::placeholder {
-            color: #336644;
+        .command-input:focus {
+            border-color: var(--accent-blue);
+            box-shadow: 0 0 0 3px rgba(59,130,246,0.15);
         }
 
-        .help-text {
+        .command-input::placeholder { color: var(--text-muted); }
+
+        .help-hint {
             font-size: 11px;
-            color: #448866;
-            margin-top: 5px;
+            color: var(--text-muted);
+            margin-top: 6px;
         }
 
-        .scrollbar-hide::-webkit-scrollbar {
-            width: 6px;
-        }
-
-        .scrollbar-hide::-webkit-scrollbar-track {
-            background: #0f0f23;
-        }
-
-        .scrollbar-hide::-webkit-scrollbar-thumb {
-            background: #00ff88;
-            border-radius: 3px;
-        }
-
-        .scrollbar-hide::-webkit-scrollbar-thumb:hover {
-            background: #00cc6a;
-        }
-
-        @media (max-width: 900px) {
-            .panels-container {
-                flex-direction: column;
-            }
-            .queue-panel, .results-panel {
-                width: 100%;
-                min-width: 100%;
-                border-right: none;
-                border-bottom: 1px solid #00ff88;
-            }
-        }
-
-        .empty-state {
-            color: #336644;
-            font-style: italic;
-            text-align: center;
-            padding: 20px;
-        }
-
-        .batch-summary {
-            background: rgba(0, 170, 255, 0.2);
-            border: 1px solid #00aaff;
+        .help-hint kbd {
+            background: #fff;
+            border: 1px solid var(--border);
+            padding: 1px 5px;
             border-radius: 4px;
-            padding: 10px;
-            margin: 10px 0;
-            font-weight: bold;
+            font-size: 10px;
+            font-family: inherit;
+            box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+        }
+
+        /* ===== EMPTY STATE ===== */
+        .empty-state {
+            text-align: center;
+            padding: 30px 16px;
+            color: var(--text-muted);
+            font-size: 12px;
+        }
+
+        .empty-state-icon {
+            font-size: 32px;
+            margin-bottom: 8px;
+            opacity: 0.5;
+        }
+
+        /* ===== DIVIDER ===== */
+        .divider {
+            height: 2px;
+            background: linear-gradient(90deg, transparent, var(--border), transparent);
+            margin: 8px 0;
+        }
+
+        /* ===== SCROLLBAR ===== */
+        .panel-content::-webkit-scrollbar { width: 6px; }
+        .panel-content::-webkit-scrollbar-track { background: transparent; }
+        .panel-content::-webkit-scrollbar-thumb { background: #c7d2fe; border-radius: 3px; }
+        .panel-content::-webkit-scrollbar-thumb:hover { background: #a5b4fc; }
+
+        /* ===== RESPONSIVE ===== */
+        @media (max-width: 768px) {
+            .body { flex-direction: column; }
+            .queue-panel { width: 100%; border-right: none; border-bottom: 1px solid var(--border); max-height: 200px; }
+            .status-bar { display: none; }
         }
     </style>
 </head>
 <body>
-    <div class="terminal-header">
-        <div class="terminal-title">GlobalDocs Solutions - Document Processor</div>
-        <div class="terminal-status">
-            <div class="status-item">
-                <div class="status-dot"></div>
-                <span>SYSTEM ONLINE</span>
+    <div class="app-container">
+        <div class="header">
+            <div style="display:flex;align-items:center;gap:14px;">
+                <div class="header-title">GlobalDocs Solutions</div>
+                <div class="header-badge">Factory Method Pattern</div>
             </div>
-            <div class="status-item">
-                <span id="queue-count">Queue: 0</span>
-            </div>
-            <div class="status-item">
-                <span id="processed-count">Processed: 0</span>
+            <div class="status-bar">
+                <div class="status-pill"><div class="status-dot"></div> Online</div>
+                <div class="status-pill" id="queue-count">Queue: 0</div>
+                <div class="status-pill" id="processed-count">Processed: 0</div>
             </div>
         </div>
-    </div>
 
-    <div class="terminal-body">
-        <div class="panels-container">
+        <div class="body">
             <div class="panel queue-panel">
                 <div class="panel-header">Document Queue</div>
-                <div class="panel-content scrollbar-hide" id="queue-panel">
-                    <div class="empty-state">No documents in queue. Type 'help' for commands.</div>
+                <div class="panel-content" id="queue-panel">
+                    <div class="empty-state">
+                        <div class="empty-state-icon">📄</div>
+                        No documents in queue.<br>Try <kbd>demo</kbd> or <kbd>help</kbd>
+                    </div>
                 </div>
             </div>
             <div class="panel results-panel">
                 <div class="panel-header">Processing Results</div>
-                <div class="panel-content scrollbar-hide" id="results-panel">
-                    <div class="empty-state">Results will appear here after batch processing.</div>
-                </div>
+                <div class="panel-content" id="results-panel"></div>
             </div>
         </div>
 
-        <div class="terminal-input-area">
-            <div class="input-line">
-                <span class="prompt">></span>
-                <input type="text" class="command-input" id="command-input" placeholder="Enter command (help for list)..." autocomplete="off" spellcheck="false">
+        <div class="input-area">
+            <div class="input-row">
+                <div class="input-prompt">&gt; Terminal</div>
+                <input type="text" class="command-input" id="command-input" placeholder="Type a command... (help, demo, add, batch, clear)" autocomplete="off" spellcheck="false">
             </div>
-            <div class="help-text" id="help-text">Commands: add <type> <country> <format> <filename> <content> | batch | clear | help | demo</div>
+            <div class="help-hint">
+                <kbd>help</kbd> Commands &nbsp;|&nbsp;
+                <kbd>demo</kbd> Load samples &nbsp;|&nbsp;
+                <kbd>batch</kbd> Process &nbsp;|&nbsp;
+                <kbd>clear</kbd> Reset
+            </div>
         </div>
     </div>
 
-    <script>
-        // ============================================================
-        // FACTORY METHOD PATTERN IMPLEMENTATION
-        // GlobalDocs Solutions - Document Processing System
-        // ============================================================
+<script>
+// ================================================================
+// FACTORY METHOD PATTERN - GlobalDocs Solutions
+// Java-style OOP (ES6 Classes, Interfaces, Abstract, Enums)
+// ================================================================
 
-        // ---------- ENUMS ----------
-        const DocumentType = Object.freeze({
-            ELECTRONIC_INVOICE: 'ELECTRONIC_INVOICE',
-            LEGAL_CONTRACT: 'LEGAL_CONTRACT',
-            FINANCIAL_REPORT: 'FINANCIAL_REPORT',
-            DIGITAL_CERTIFICATE: 'DIGITAL_CERTIFICATE',
-            TAX_DECLARATION: 'TAX_DECLARATION'
+// -------------------- ENUMS (Immutable) --------------------
+class DocumentType {
+    static ELECTRONIC_INVOICE = 'ELECTRONIC_INVOICE';
+    static LEGAL_CONTRACT     = 'LEGAL_CONTRACT';
+    static FINANCIAL_REPORT   = 'FINANCIAL_REPORT';
+    static DIGITAL_CERTIFICATE = 'DIGITAL_CERTIFICATE';
+    static TAX_DECLARATION    = 'TAX_DECLARATION';
+
+    static values() {
+        return [
+            this.ELECTRONIC_INVOICE,
+            this.LEGAL_CONTRACT,
+            this.FINANCIAL_REPORT,
+            this.DIGITAL_CERTIFICATE,
+            this.TAX_DECLARATION
+        ];
+    }
+
+    static isValid(value) {
+        return this.values().includes(value);
+    }
+}
+
+class Country {
+    static COLOMBIA  = 'COLOMBIA';
+    static MEXICO    = 'MEXICO';
+    static ARGENTINA = 'ARGENTINA';
+    static CHILE     = 'CHILE';
+
+    static values() {
+        return [this.COLOMBIA, this.MEXICO, this.ARGENTINA, this.CHILE];
+    }
+
+    static isValid(value) {
+        return this.values().includes(value);
+    }
+}
+
+class DocumentFormat {
+    static SUPPORTED = ['pdf', 'doc', 'docx', 'md', 'csv', 'txt', 'xlsx'];
+
+    static isSupported(format) {
+        return this.SUPPORTED.includes(format.toLowerCase());
+    }
+}
+
+// -------------------- DOMAIN MODEL --------------------
+class Document {
+    /** @param {string} fileName @param {string} format @param {string} type @param {string} country @param {string} content */
+    constructor(fileName, format, type, country, content) {
+        if (!fileName || typeof fileName !== 'string') throw new Error('fileName must be a non-empty string');
+        this._fileName = fileName;
+        this._format = format.toLowerCase();
+        this._type = type;
+        this._country = country;
+        this._content = content;
+    }
+
+    get fileName() { return this._fileName; }
+    get format()   { return this._format; }
+    get type()     { return this._type; }
+    get country()  { return this._country; }
+    get content()  { return this._content; }
+}
+
+// -------------------- CUSTOM EXCEPTION --------------------
+class DocumentProcessingException extends Error {
+    constructor(message) {
+        super(message);
+        this.name = 'DocumentProcessingException';
+    }
+}
+
+// -------------------- PRODUCT INTERFACE --------------------
+class DocumentProcessor {
+    validateFormat(document) {
+        throw new Error('validateFormat() must be implemented by subclass');
+    }
+    validateCountryRegulation(document) {
+        throw new Error('validateCountryRegulation() must be implemented by subclass');
+    }
+    process(document) {
+        throw new Error('process() must be implemented by subclass');
+    }
+}
+
+// -------------------- ABSTRACT PRODUCT (Template Method) --------------------
+class AbstractDocumentProcessor extends DocumentProcessor {
+
+    /** @protected */
+    validateFormat(document) {
+        if (!DocumentFormat.isSupported(document.format)) {
+            throw new DocumentProcessingException(
+                `Unsupported format "${document.format}" for file ${document.fileName}`
+            );
+        }
+    }
+
+    /** @abstract */
+    validateCountryRegulation(document) {
+        throw new Error('validateCountryRegulation() must be implemented by subclass');
+    }
+
+    process(document) {
+        this.validateFormat(document);
+        this.validateCountryRegulation(document);
+        this.doProcess(document);
+    }
+
+    /** @abstract @protected */
+    doProcess(document) {
+        throw new Error('doProcess() must be implemented by subclass');
+    }
+
+    /** @protected */
+    log(message, type = 'success') {
+        TerminalUI.addResult(message, type);
+    }
+}
+
+// -------------------- CONCRETE PRODUCTS --------------------
+class InvoiceProcessor extends AbstractDocumentProcessor {
+
+    /** Validates country-specific tax stamps: CUFE (CO), CFDI (MX), CAE (AR), TED (CL) */
+    validateCountryRegulation(document) {
+        const rules = {
+            [Country.COLOMBIA]:  { field: 'CUFE', agency: 'DIAN' },
+            [Country.MEXICO]:    { field: 'CFDI', agency: 'SAT' },
+            [Country.ARGENTINA]: { field: 'CAE',  agency: 'AFIP' },
+            [Country.CHILE]:     { field: 'TED',  agency: 'SII' }
+        };
+        const rule = rules[document.country];
+        if (rule && !document.content.includes(rule.field)) {
+            throw new DocumentProcessingException(
+                `${document.country}: missing ${rule.field} stamp (${rule.agency} requirement)`
+            );
+        }
+    }
+
+    doProcess(document) {
+        this.log(`Processing electronic invoice: ${document.fileName} [${document.country}]`);
+    }
+}
+
+class ContractProcessor extends AbstractDocumentProcessor {
+
+    /** Legal contracts require a digital SIGNATURE */
+    validateCountryRegulation(document) {
+        if (!document.content.includes('SIGNATURE')) {
+            throw new DocumentProcessingException(
+                `Legal contract missing digital signature for ${document.country}`
+            );
+        }
+    }
+
+    doProcess(document) {
+        this.log(`Processing legal contract: ${document.fileName}`);
+    }
+}
+
+class FinancialReportProcessor extends AbstractDocumentProcessor {
+
+    /** Argentina requires financial reports in xlsx format */
+    validateCountryRegulation(document) {
+        if (document.country === Country.ARGENTINA && document.format !== 'xlsx') {
+            throw new DocumentProcessingException(
+                'Argentina: financial reports must be xlsx format'
+            );
+        }
+    }
+
+    doProcess(document) {
+        this.log(`Processing financial report: ${document.fileName}`);
+    }
+}
+
+class DigitalCertificateProcessor extends AbstractDocumentProcessor {
+
+    /** Requires CERT_AUTHORITY in content */
+    validateCountryRegulation(document) {
+        if (!document.content.includes('CERT_AUTHORITY')) {
+            throw new DocumentProcessingException(
+                `Digital certificate missing certifying authority for ${document.country}`
+            );
+        }
+    }
+
+    doProcess(document) {
+        this.log(`Processing digital certificate: ${document.fileName}`);
+    }
+}
+
+class TaxDeclarationProcessor extends AbstractDocumentProcessor {
+
+    /** Each country requires a specific tax ID field */
+    validateCountryRegulation(document) {
+        const requiredFields = {
+            [Country.COLOMBIA]:  'RUT',
+            [Country.MEXICO]:    'RFC',
+            [Country.ARGENTINA]: 'CUIT',
+            [Country.CHILE]:     'RUT_CHILE'
+        };
+        const field = requiredFields[document.country];
+        if (field && !document.content.includes(field)) {
+            throw new DocumentProcessingException(
+                `Tax declaration missing required field: ${field}`
+            );
+        }
+    }
+
+    doProcess(document) {
+        this.log(`Processing tax declaration: ${document.fileName}`);
+    }
+}
+
+// -------------------- CREATOR (Abstract Factory) --------------------
+class DocumentProcessorFactory {
+    /** @abstract @returns {DocumentProcessor} */
+    createProcessor() {
+        throw new Error('createProcessor() must be implemented by subclass');
+    }
+
+    /** Template method: creates and processes */
+    processDocument(document) {
+        const processor = this.createProcessor();
+        processor.process(document);
+    }
+}
+
+// -------------------- CONCRETE CREATORS --------------------
+class InvoiceProcessorFactory extends DocumentProcessorFactory {
+    createProcessor() { return new InvoiceProcessor(); }
+}
+
+class ContractProcessorFactory extends DocumentProcessorFactory {
+    createProcessor() { return new ContractProcessor(); }
+}
+
+class FinancialReportProcessorFactory extends DocumentProcessorFactory {
+    createProcessor() { return new FinancialReportProcessor(); }
+}
+
+class DigitalCertificateProcessorFactory extends DocumentProcessorFactory {
+    createProcessor() { return new DigitalCertificateProcessor(); }
+}
+
+class TaxDeclarationProcessorFactory extends DocumentProcessorFactory {
+    createProcessor() { return new TaxDeclarationProcessor(); }
+}
+
+// -------------------- FACTORY PROVIDER (Single Access Point) --------------------
+class DocumentProcessorFactoryProvider {
+
+    /** @param {string} documentType @returns {DocumentProcessorFactory} */
+    static getFactory(documentType) {
+        const factoryMap = {
+            [DocumentType.ELECTRONIC_INVOICE]:  InvoiceProcessorFactory,
+            [DocumentType.LEGAL_CONTRACT]:      ContractProcessorFactory,
+            [DocumentType.FINANCIAL_REPORT]:    FinancialReportProcessorFactory,
+            [DocumentType.DIGITAL_CERTIFICATE]: DigitalCertificateProcessorFactory,
+            [DocumentType.TAX_DECLARATION]:     TaxDeclarationProcessorFactory
+        };
+        const FactoryClass = factoryMap[documentType];
+        if (!FactoryClass) {
+            throw new IllegalArgumentException(`Unknown document type: ${documentType}`);
+        }
+        return new FactoryClass();
+    }
+}
+
+// -------------------- BATCH PROCESSING --------------------
+class BatchResult {
+    constructor() {
+        this._total = 0;
+        this._success = 0;
+        this._errors = [];
+    }
+
+    get total()   { return this._total; }
+    get success()  { return this._success; }
+    get errors()   { return this._errors; }
+
+    registerSuccess() { this._success++; this._total++; }
+
+    registerError(fileName, reason) {
+        this._errors.push({ fileName, reason });
+        this._total++;
+    }
+
+    get successRate() {
+        return this._total === 0 ? 0 : Math.round((this._success / this._total) * 100);
+    }
+
+    getSummary() {
+        return `${this._success}/${this._total} processed successfully (${this.successRate}%)`;
+    }
+}
+
+class BatchDocumentProcessor {
+    /** @param {Document[]} documents @returns {BatchResult} */
+    processBatch(documents) {
+        const result = new BatchResult();
+        for (const document of documents) {
+            try {
+                const factory = DocumentProcessorFactoryProvider.getFactory(document.type);
+                factory.processDocument(document);
+                result.registerSuccess();
+            } catch (e) {
+                const reason = e instanceof DocumentProcessingException ? e.message : `Unexpected: ${e.message}`;
+                result.registerError(document.fileName, reason);
+            }
+        }
+        return result;
+    }
+}
+
+// -------------------- DOCUMENT FACTORY (for creating Document instances) --------------------
+class DocumentFactory {
+    /**
+     * @param {Object} params
+     * @returns {Document}
+     */
+    static create({ fileName, format, type, country, content }) {
+        if (!DocumentType.isValid(type))     throw new IllegalArgumentException(`Invalid document type: ${type}`);
+        if (!Country.isValid(country))       throw new IllegalArgumentException(`Invalid country: ${country}`);
+        if (!DocumentFormat.isSupported(format)) throw new IllegalArgumentException(`Unsupported format: ${format}`);
+        return new Document(fileName, format, type, country, content);
+    }
+}
+
+// ================================================================
+// TERMINAL UI CONTROLLER
+// ================================================================
+class IllegalArgumentException extends Error {
+    constructor(message) { super(message); this.name = 'IllegalArgumentException'; }
+}
+
+const TerminalUI = {
+    _documentQueue: [],
+    _processedCount: 0,
+    _isProcessing: false,
+
+    get queuePanel()    { return document.getElementById('queue-panel'); },
+    get resultsPanel()  { return document.getElementById('results-panel'); },
+    get commandInput()  { return document.getElementById('command-input'); },
+    get queueCountEl()  { return document.getElementById('queue-count'); },
+    get processedEl()   { return document.getElementById('processed-count'); },
+
+    init() {
+        this.commandInput.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') {
+                const cmd = this.commandInput.value.trim();
+                if (cmd) { this.executeCommand(cmd); this.commandInput.value = ''; }
+            }
         });
+        this.commandInput.focus();
+        this.addResult('Welcome to GlobalDocs Solutions Document Processor', 'info');
+        this.addResult('Factory Method pattern implementation | Java-style OOP', 'info');
+        this.addResult('Type "help" for commands or "demo" to load sample documents', 'info');
+    },
 
-        const Country = Object.freeze({
-            COLOMBIA: 'COLOMBIA',
-            MEXICO: 'MEXICO',
-            ARGENTINA: 'ARGENTINA',
-            CHILE: 'CHILE'
-        });
+    executeCommand(raw) {
+        this.addResult(`> ${raw}`, 'info');
+        const parts = raw.split(' ');
+        const cmd = parts[0].toLowerCase();
+        const args = parts.slice(1);
 
-        const DocumentFormat = Object.freeze({
-            PDF: 'pdf',
-            DOC: 'doc',
-            DOCX: 'docx',
-            MD: 'md',
-            CSV: 'csv',
-            TXT: 'txt',
-            XLSX: 'xlsx'
-        });
-
-        const SUPPORTED_FORMATS = Object.values(DocumentFormat);
-
-        // ---------- DOMAIN MODEL ----------
-        class Document {
-            constructor(fileName, format, type, country, content) {
-                this.fileName = fileName;
-                this.format = format.toLowerCase();
-                this.type = type;
-                this.country = country;
-                this.content = content;
-            }
-
-            getFileName() { return this.fileName; }
-            getFormat() { return this.format; }
-            getType() { return this.type; }
-            getCountry() { return this.country; }
-            getContent() { return this.content; }
+        switch (cmd) {
+            case 'help':    this.showHelp(); break;
+            case 'add':     this.handleAdd(args); break;
+            case 'batch':   this.handleBatch(); break;
+            case 'clear':   this.handleClear(); break;
+            case 'demo':    this.handleDemo(); break;
+            case 'status':  this.handleStatus(); break;
+            default:        this.addResult(`Unknown command: "${cmd}". Type "help" for available commands.`, 'error');
         }
+    },
 
-        // ---------- CUSTOM EXCEPTION ----------
-        class DocumentProcessingException extends Error {
-            constructor(message) {
-                super(message);
-                this.name = 'DocumentProcessingException';
-            }
+    showHelp() {
+        const lines = [
+            { t: 'AVAILABLE COMMANDS', c: 'info' },
+            { t: '', c: 'info' },
+            { t: 'add <type> <country> <format> <filename> <content>', c: 'info' },
+            { t: '    Add a document to the processing queue', c: 'info' },
+            { t: '', c: 'info' },
+            { t: '    Types:', c: 'info' },
+        ];
+        DocumentType.values().forEach(v => lines.push({ t: `      ${v}`, c: 'info' }));
+        lines.push({ t: '', c: 'info' }, { t: '    Countries:', c: 'info' });
+        Country.values().forEach(v => lines.push({ t: `      ${v}`, c: 'info' }));
+        lines.push(
+            { t: '', c: 'info' },
+            { t: '    Formats: pdf, doc, docx, md, csv, txt, xlsx', c: 'info' },
+            { t: '', c: 'info' },
+            { t: '    Example:', c: 'info' },
+            { t: '      add ELECTRONIC_INVOICE COLOMBIA pdf inv.pdf "Invoice CUFE=123456"', c: 'info' },
+            { t: '', c: 'info' },
+            { t: 'batch    Process all queued documents', c: 'info' },
+            { t: 'status   Show queue and processing stats', c: 'info' },
+            { t: 'clear    Clear queue and results', c: 'info' },
+            { t: 'demo     Load sample documents from case study', c: 'info' },
+            { t: 'help     Show this help', c: 'info' },
+        );
+        this.addResult('='.repeat(55), 'info');
+        lines.forEach(l => this.addResult(l.t, l.c));
+        this.addResult('='.repeat(55), 'info');
+    },
+
+    handleAdd(args) {
+        if (args.length < 5) {
+            this.addResult('Usage: add <type> <country> <format> <filename> <content>', 'error');
+            this.addResult('Content can contain spaces (everything after filename)', 'warning');
+            return;
         }
-
-        // ---------- PRODUCT INTERFACE ----------
-        class DocumentProcessor {
-            validateFormat(document) {
-                throw new Error('validateFormat() must be implemented');
-            }
-
-            validateCountryRegulation(document) {
-                throw new Error('validateCountryRegulation() must be implemented');
-            }
-
-            process(document) {
-                throw new Error('process() must be implemented');
-            }
+        try {
+            const doc = DocumentFactory.create({
+                type: args[0].toUpperCase(),
+                country: args[1].toUpperCase(),
+                format: args[2].toLowerCase(),
+                fileName: args[3],
+                content: args.slice(4).join(' ')
+            });
+            this._documentQueue.push(doc);
+            this.addResult(`Added: ${doc.fileName} [${doc.country} | ${doc.type} | ${doc.format}]`, 'success');
+            this.renderQueue();
+            this.updateStatus();
+        } catch (e) {
+            this.addResult(e.message, 'error');
         }
+    },
 
-        // ---------- ABSTRACT PRODUCT (Template Method) ----------
-        class AbstractDocumentProcessor extends DocumentProcessor {
-            validateFormat(document) {
-                if (!SUPPORTED_FORMATS.includes(document.getFormat())) {
-                    throw new DocumentProcessingException(
-                        `Unsupported format: ${document.getFormat()} for file ${document.getFileName()}`
-                    );
-                }
-            }
-
-            validateCountryRegulation(document) {
-                throw new Error('validateCountryRegulation() must be implemented by subclass');
-            }
-
-            process(document) {
-                this.validateFormat(document);
-                this.validateCountryRegulation(document);
-                this.doProcess(document);
-            }
-
-            doProcess(document) {
-                throw new Error('doProcess() must be implemented by subclass');
-            }
+    handleBatch() {
+        if (this._documentQueue.length === 0) {
+            this.addResult('Queue is empty. Add documents first.', 'warning');
+            return;
         }
-
-        // ---------- CONCRETE PRODUCTS ----------
-        class InvoiceProcessor extends AbstractDocumentProcessor {
-            validateCountryRegulation(document) {
-                const country = document.getCountry();
-                const content = document.getContent();
-
-                switch (country) {
-                    case Country.COLOMBIA:
-                        if (!content.includes('CUFE')) {
-                            throw new DocumentProcessingException(
-                                'Colombia: missing CUFE code (DIAN requirement)'
-                            );
-                        }
-                        break;
-                    case Country.MEXICO:
-                        if (!content.includes('CFDI')) {
-                            throw new DocumentProcessingException(
-                                'Mexico: missing CFDI stamp (SAT requirement)'
-                            );
-                        }
-                        break;
-                    case Country.ARGENTINA:
-                        if (!content.includes('CAE')) {
-                            throw new DocumentProcessingException(
-                                'Argentina: missing CAE code (AFIP requirement)'
-                            );
-                        }
-                        break;
-                    case Country.CHILE:
-                        if (!content.includes('TED')) {
-                            throw new DocumentProcessingException(
-                                'Chile: missing TED stamp (SII requirement)'
-                            );
-                        }
-                        break;
-                }
-            }
-
-            doProcess(document) {
-                this.log(`Processing electronic invoice: ${document.getFileName()} [${document.getCountry()}]`);
-            }
-
-            log(message) {
-                TerminalUI.addResult(message, 'success');
-            }
+        if (this._isProcessing) {
+            this.addResult('Already processing...', 'warning');
+            return;
         }
+        this._isProcessing = true;
+        this.commandInput.disabled = true;
+        this.addResult('STARTING BATCH PROCESSING...', 'info');
 
-        class ContractProcessor extends AbstractDocumentProcessor {
-            validateCountryRegulation(document) {
-                if (!document.getContent().includes('SIGNATURE')) {
-                    throw new DocumentProcessingException(
-                        `Legal contract missing digital signature for ${document.getCountry()}`
-                    );
-                }
-            }
+        const processor = new BatchDocumentProcessor();
+        const batch = [...this._documentQueue];
+        this._documentQueue = [];
+        this.renderQueue();
+        this.updateStatus();
 
-            doProcess(document) {
-                this.log(`Processing legal contract: ${document.getFileName()}`);
-            }
+        setTimeout(() => {
+            const result = processor.processBatch(batch);
 
-            log(message) {
-                TerminalUI.addResult(message, 'success');
-            }
-        }
-
-        class FinancialReportProcessor extends AbstractDocumentProcessor {
-            validateCountryRegulation(document) {
-                if (document.getCountry() === Country.ARGENTINA && document.getFormat() !== 'xlsx') {
-                    throw new DocumentProcessingException(
-                        'Argentina: financial reports must be xlsx format'
-                    );
-                }
-            }
-
-            doProcess(document) {
-                this.log(`Processing financial report: ${document.getFileName()}`);
-            }
-
-            log(message) {
-                TerminalUI.addResult(message, 'success');
-            }
-        }
-
-        class DigitalCertificateProcessor extends AbstractDocumentProcessor {
-            validateCountryRegulation(document) {
-                if (!document.getContent().includes('CERT_AUTHORITY')) {
-                    throw new DocumentProcessingException(
-                        `Digital certificate missing certifying authority for ${document.getCountry()}`
-                    );
-                }
-            }
-
-            doProcess(document) {
-                this.log(`Processing digital certificate: ${document.getFileName()}`);
-            }
-
-            log(message) {
-                TerminalUI.addResult(message, 'success');
-            }
-        }
-
-        class TaxDeclarationProcessor extends AbstractDocumentProcessor {
-            validateCountryRegulation(document) {
-                const country = document.getCountry();
-                const content = document.getContent();
-
-                const requiredFields = {
-                    [Country.COLOMBIA]: 'RUT',
-                    [Country.MEXICO]: 'RFC',
-                    [Country.ARGENTINA]: 'CUIT',
-                    [Country.CHILE]: 'RUT_CHILE'
-                };
-
-                const field = requiredFields[country];
-                if (field && !content.includes(field)) {
-                    throw new DocumentProcessingException(
-                        `Tax declaration missing required field: ${field}`
-                    );
-                }
-            }
-
-            doProcess(document) {
-                this.log(`Processing tax declaration: ${document.getFileName()}`);
-            }
-
-            log(message) {
-                TerminalUI.addResult(message, 'success');
-            }
-        }
-
-        // ---------- CREATOR (Abstract Factory) ----------
-        class DocumentProcessorFactory {
-            createProcessor() {
-                throw new Error('createProcessor() must be implemented by subclass');
-            }
-
-            processDocument(document) {
-                const processor = this.createProcessor();
-                processor.process(document);
-            }
-        }
-
-        // ---------- CONCRETE CREATORS ----------
-        class InvoiceProcessorFactory extends DocumentProcessorFactory {
-            createProcessor() {
-                return new InvoiceProcessor();
-            }
-        }
-
-        class ContractProcessorFactory extends DocumentProcessorFactory {
-            createProcessor() {
-                return new ContractProcessor();
-            }
-        }
-
-        class FinancialReportProcessorFactory extends DocumentProcessorFactory {
-            createProcessor() {
-                return new FinancialReportProcessor();
-            }
-        }
-
-        class DigitalCertificateProcessorFactory extends DocumentProcessorFactory {
-            createProcessor() {
-                return new DigitalCertificateProcessor();
-            }
-        }
-
-        class TaxDeclarationProcessorFactory extends DocumentProcessorFactory {
-            createProcessor() {
-                return new TaxDeclarationProcessor();
-            }
-        }
-
-        // ---------- FACTORY PROVIDER (Single Access Point) ----------
-        class DocumentProcessorFactoryProvider {
-            static getFactory(documentType) {
-                const factories = {
-                    [DocumentType.ELECTRONIC_INVOICE]: () => new InvoiceProcessorFactory(),
-                    [DocumentType.LEGAL_CONTRACT]: () => new ContractProcessorFactory(),
-                    [DocumentType.FINANCIAL_REPORT]: () => new FinancialReportProcessorFactory(),
-                    [DocumentType.DIGITAL_CERTIFICATE]: () => new DigitalCertificateProcessorFactory(),
-                    [DocumentType.TAX_DECLARATION]: () => new TaxDeclarationProcessorFactory()
-                };
-
-                const factoryCreator = factories[documentType];
-                if (!factoryCreator) {
-                    throw new Error(`Unknown document type: ${documentType}`);
-                }
-                return factoryCreator();
-            }
-        }
-
-        // ---------- BATCH PROCESSING ----------
-        class BatchResult {
-            constructor() {
-                this.total = 0;
-                this.success = 0;
-                this.errors = [];
-            }
-
-            registerSuccess() {
-                this.success++;
-                this.total++;
-            }
-
-            registerError(fileName, reason) {
-                this.errors.push(`${fileName} -> ${reason}`);
-                this.total++;
-            }
-
-            getSummary() {
-                return `Batch finished: ${this.success}/${this.total} processed successfully`;
-            }
-
-            getErrors() {
-                return this.errors;
-            }
-        }
-
-        class BatchDocumentProcessor {
-            processBatch(documents) {
-                const result = new BatchResult();
-
-                for (const document of documents) {
-                    try {
-                        const factory = DocumentProcessorFactoryProvider.getFactory(document.getType());
-                        factory.processDocument(document);
-                        result.registerSuccess();
-                    } catch (e) {
-                        if (e instanceof DocumentProcessingException) {
-                            result.registerError(document.getFileName(), e.message);
-                        } else {
-                            result.registerError(document.getFileName(), `Unexpected error: ${e.message}`);
-                        }
-                    }
-                }
-
-                return result;
-            }
-        }
-
-        // ============================================================
-        // TERMINAL UI CONTROLLER
-        // ============================================================
-        const TerminalUI = (function() {
-            let documentQueue = [];
-            let processedCount = 0;
-            let isProcessing = false;
-
-            const queuePanel = document.getElementById('queue-panel');
-            const resultsPanel = document.getElementById('results-panel');
-            const commandInput = document.getElementById('command-input');
-            const queueCountEl = document.getElementById('queue-count');
-            const processedCountEl = document.getElementById('processed-count');
-            const helpText = document.getElementById('help-text');
-
-            function init() {
-                commandInput.addEventListener('keydown', handleKeyDown);
-                commandInput.focus();
-                renderQueue();
-                addResult('Welcome to GlobalDocs Solutions Document Processor Terminal', 'info');
-                addResult('Type "help" for available commands', 'info');
-                addResult('Type "demo" to load sample documents', 'info');
-            }
-
-            function handleKeyDown(e) {
-                if (e.key === 'Enter') {
-                    const command = commandInput.value.trim();
-                    if (command) {
-                        executeCommand(command);
-                        commandInput.value = '';
-                    }
-                }
-            }
-
-            function executeCommand(command) {
-                addResult(`> ${command}`, 'info');
-
-                const parts = command.split(' ');
-                const cmd = parts[0].toLowerCase();
-                const args = parts.slice(1);
-
-                switch (cmd) {
-                    case 'help':
-                        showHelp();
-                        break;
-                    case 'add':
-                        handleAdd(args);
-                        break;
-                    case 'batch':
-                        handleBatch();
-                        break;
-                    case 'clear':
-                        handleClear();
-                        break;
-                    case 'demo':
-                        handleDemo();
-                        break;
-                    default:
-                        addResult(`Unknown command: ${cmd}. Type 'help' for available commands.`, 'error');
-                }
-            }
-
-            function showHelp() {
-                addResult('═══════════════════════════════════════════════════════════', 'info');
-                addResult('AVAILABLE COMMANDS:', 'info');
-                addResult('═══════════════════════════════════════════════════════════', 'info');
-                addResult('add <type> <country> <format> <filename> <content>', 'info');
-                addResult('  Add a document to the processing queue', 'info');
-                addResult('', 'info');
-                addResult('  Types:', 'info');
-                Object.values(DocumentType).forEach(t => addResult(`    ${t}`, 'info'));
-                addResult('', 'info');
-                addResult('  Countries:', 'info');
-                Object.values(Country).forEach(c => addResult(`    ${c}`, 'info'));
-                addResult('', 'info');
-                addResult('  Formats:', 'info');
-                Object.values(DocumentFormat).forEach(f => addResult(`    ${f}`, 'info'));
-                addResult('', 'info');
-                addResult('  Example:', 'info');
-                addResult('    add ELECTRONIC_INVOICE COLOMBIA pdf invoice_001.pdf "Invoice data CUFE=123456"', 'info');
-                addResult('', 'info');
-                addResult('batch                    Process all queued documents', 'info');
-                addResult('clear                    Clear queue and results', 'info');
-                addResult('demo                     Load sample documents from case study', 'info');
-                addResult('help                     Show this help', 'info');
-                addResult('═══════════════════════════════════════════════════════════', 'info');
-            }
-
-            function handleAdd(args) {
-                if (args.length < 5) {
-                    addResult('Usage: add <type> <country> <format> <filename> <content>', 'error');
-                    addResult('Note: content can contain spaces (everything after filename)', 'warning');
-                    return;
-                }
-
-                const type = args[0].toUpperCase();
-                const country = args[1].toUpperCase();
-                const format = args[2].toLowerCase();
-                const fileName = args[3];
-                const content = args.slice(4).join(' ');
-
-                if (!Object.values(DocumentType).includes(type)) {
-                    addResult(`Invalid document type: ${type}`, 'error');
-                    return;
-                }
-
-                if (!Object.values(Country).includes(country)) {
-                    addResult(`Invalid country: ${country}`, 'error');
-                    return;
-                }
-
-                if (!SUPPORTED_FORMATS.includes(format)) {
-                    addResult(`Unsupported format: ${format}`, 'error');
-                    return;
-                }
-
-                const document = new Document(fileName, format, type, country, content);
-                documentQueue.push(document);
-                addResult(`Added to queue: ${fileName} [${country}, ${type}]`, 'success');
-                renderQueue();
-                updateStatus();
-            }
-
-            function handleBatch() {
-                if (documentQueue.length === 0) {
-                    addResult('Queue is empty. Add documents first.', 'warning');
-                    return;
-                }
-
-                if (isProcessing) {
-                    addResult('Already processing...', 'warning');
-                    return;
-                }
-
-                isProcessing = true;
-                commandInput.disabled = true;
-                addResult('═══════════════════════════════════════════════════════════', 'info');
-                addResult('STARTING BATCH PROCESSING...', 'info');
-                addResult('═══════════════════════════════════════════════════════════', 'info');
-
-                const batchProcessor = new BatchDocumentProcessor();
-                const documentsToProcess = [...documentQueue];
-                documentQueue = [];
-                renderQueue();
-                updateStatus();
-
-                setTimeout(() => {
-                    const result = batchProcessor.processBatch(documentsToProcess);
-
-                    result.getErrors().forEach(err => {
-                        addResult(`[ERROR] ${err}`, 'error');
-                    });
-
-                    addResult('═══════════════════════════════════════════════════════════', 'info');
-                    addResult(result.getSummary(), 'info');
-                    addResult('═══════════════════════════════════════════════════════════', 'info');
-
-                    processedCount += result.success;
-                    updateStatus();
-                    isProcessing = false;
-                    commandInput.disabled = false;
-                    commandInput.focus();
-                }, 500);
-            }
-
-            function handleClear() {
-                documentQueue = [];
-                processedCount = 0;
-                resultsPanel.innerHTML = '<div class="empty-state">Results will appear here after batch processing.</div>';
-                renderQueue();
-                updateStatus();
-                addResult('Queue and results cleared.', 'info');
-            }
-
-            function handleDemo() {
-                const demoDocs = [
-                    new Document('invoice_co_001.pdf', 'pdf', DocumentType.ELECTRONIC_INVOICE, Country.COLOMBIA, 'Invoice data CUFE=123456'),
-                    new Document('invoice_mx_002.pdf', 'pdf', DocumentType.ELECTRONIC_INVOICE, Country.MEXICO, 'Invoice data without stamp'),
-                    new Document('tax_ar_003.csv', 'csv', DocumentType.TAX_DECLARATION, Country.ARGENTINA, 'Declaration CUIT=30-12345678-9'),
-                    new Document('contract_cl_004.docx', 'docx', DocumentType.LEGAL_CONTRACT, Country.CHILE, 'Contract SIGNATURE=digital_ok')
-                ];
-
-                documentQueue = demoDocs;
-                renderQueue();
-                updateStatus();
-                addResult('Demo documents loaded (4 documents from case study):', 'info');
-                demoDocs.forEach((doc, i) => {
-                    addResult(`  ${i+1}. ${doc.getFileName()} [${doc.getCountry()}, ${doc.getType()}]`, 'info');
-                });
-                addResult('Type "batch" to process them.', 'info');
-            }
-
-            function addResult(message, type = 'info') {
-                const emptyState = resultsPanel.querySelector('.empty-state');
-                if (emptyState) {
-                    emptyState.remove();
-                }
-
-                const line = document.createElement('div');
-                line.className = `result-line ${type}`;
-                line.textContent = message;
-                resultsPanel.appendChild(line);
-                resultsPanel.scrollTop = resultsPanel.scrollHeight;
-            }
-
-            function renderQueue() {
-                queuePanel.innerHTML = '';
-
-                if (documentQueue.length === 0) {
-                    queuePanel.innerHTML = '<div class="empty-state">No documents in queue. Type \'help\' for commands.</div>';
-                    return;
-                }
-
-                documentQueue.forEach((doc, index) => {
-                    const item = document.createElement('div');
-                    item.className = 'document-item pending';
-                    item.innerHTML = `
-                        <div class="document-name">${index + 1}. ${doc.getFileName()}</div>
-                        <div class="document-meta">${doc.getCountry()} | ${doc.getType()} | ${doc.getFormat()}</div>
-                    `;
-                    queuePanel.appendChild(item);
+            if (result.errors.length > 0) {
+                result.errors.forEach(e => {
+                    this.addResult(`[ERROR] ${e.fileName}: ${e.reason}`, 'error');
                 });
             }
 
-            function updateStatus() {
-                queueCountEl.textContent = `Queue: ${documentQueue.length}`;
-                processedCountEl.textContent = `Processed: ${processedCount}`;
-            }
+            this.addResult('-'.repeat(55), 'info');
+            this.addResult(result.getSummary(), result.errors.length === 0 ? 'success' : 'warning');
+            this.addResult('-'.repeat(55), 'info');
 
-            return {
-                init,
-                addResult
-            };
-        })();
+            this._processedCount += result.success;
+            this.updateStatus();
+            this._isProcessing = false;
+            this.commandInput.disabled = false;
+            this.commandInput.focus();
+        }, 400);
+    },
 
-        // Initialize on load
-        document.addEventListener('DOMContentLoaded', TerminalUI.init);
-    </script>
+    handleClear() {
+        this._documentQueue = [];
+        this._processedCount = 0;
+        this.resultsPanel.innerHTML = '';
+        this.renderQueue();
+        this.updateStatus();
+        this.addResult('Queue and results cleared.', 'info');
+    },
+
+    handleDemo() {
+        const demoDocs = [
+            DocumentFactory.create({ fileName: 'invoice_co_001.pdf', format: 'pdf', type: DocumentType.ELECTRONIC_INVOICE, country: Country.COLOMBIA, content: 'Invoice data CUFE=123456' }),
+            DocumentFactory.create({ fileName: 'invoice_mx_002.pdf', format: 'pdf', type: DocumentType.ELECTRONIC_INVOICE, country: Country.MEXICO, content: 'Invoice data without stamp' }),
+            DocumentFactory.create({ fileName: 'tax_ar_003.csv', format: 'csv', type: DocumentType.TAX_DECLARATION, country: Country.ARGENTINA, content: 'Declaration CUIT=30-12345678-9' }),
+            DocumentFactory.create({ fileName: 'contract_cl_004.docx', format: 'docx', type: DocumentType.LEGAL_CONTRACT, country: Country.CHILE, content: 'Contract SIGNATURE=digital_ok' })
+        ];
+        this._documentQueue = demoDocs;
+        this.renderQueue();
+        this.updateStatus();
+        this.addResult(`Loaded ${demoDocs.length} sample documents from case study:`, 'info');
+        demoDocs.forEach((d, i) => {
+            this.addResult(`  ${i+1}. ${d.fileName} [${d.country} | ${d.type}]`, 'info');
+        });
+        this.addResult('Type "batch" to process them.', 'info');
+    },
+
+    handleStatus() {
+        this.addResult('--- Status ---', 'info');
+        this.addResult(`Queue: ${this._documentQueue.length} documents`, 'info');
+        this.addResult(`Processed: ${this._processedCount} documents`, 'info');
+        this.addResult(`Processing: ${this._isProcessing ? 'yes' : 'no'}`, 'info');
+    },
+
+    addResult(message, type = 'info') {
+        const item = document.createElement('div');
+        item.className = `result-item ${type}`;
+        item.innerHTML = message ? `<div class="result-label ${type}">[${type.toUpperCase()}]</div>${message}` : '';
+        this.resultsPanel.appendChild(item);
+        this.resultsPanel.scrollTop = this.resultsPanel.scrollHeight;
+    },
+
+    renderQueue() {
+        this.queuePanel.innerHTML = '';
+        if (this._documentQueue.length === 0) {
+            this.queuePanel.innerHTML = '<div class="empty-state"><div class="empty-state-icon">📄</div>No documents in queue.<br>Try <kbd>demo</kbd> or <kbd>help</kbd></div>';
+            return;
+        }
+        this._documentQueue.forEach((doc, i) => {
+            const el = document.createElement('div');
+            el.className = 'queue-item';
+            el.innerHTML = `
+                <div class="queue-item-name">${i+1}. ${doc.fileName}</div>
+                <div class="queue-item-meta">
+                    <span class="meta-tag country">${doc.country}</span>
+                    <span class="meta-tag type">${doc.type.replace(/_/g, ' ')}</span>
+                    <span class="meta-tag format">${doc.format}</span>
+                </div>
+            `;
+            this.queuePanel.appendChild(el);
+        });
+    },
+
+    updateStatus() {
+        this.queueCountEl.textContent = `Queue: ${this._documentQueue.length}`;
+        this.processedEl.textContent = `Processed: ${this._processedCount}`;
+    }
+};
+
+// Initialize
+document.addEventListener('DOMContentLoaded', () => TerminalUI.init());
+</script>
 </body>
 </html>

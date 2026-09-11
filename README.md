@@ -1,39 +1,40 @@
 # GlobalDocs Solutions - Factory Method Document Processor
 
-A functional HTML terminal application implementing the **Factory Method design pattern** for enterprise document processing, based on the GlobalDocs Solutions case study.
+A functional HTML terminal implementing the **Factory Method design pattern** with Java-style OOP (ES6 Classes) and a bright, vivid light interface.
 
 ## Overview
 
-This application demonstrates the Factory Method pattern applied to a multi-country document processing system. It processes 5 types of documents across 4 countries (Colombia, Mexico, Argentina, Chile) with country-specific regulatory validation.
+This application demonstrates the Factory Method pattern applied to a multi-country enterprise document processing system. Built following the `factory-method` skill guidelines with proper Java-style class hierarchy.
 
 ## Features
 
-- **Factory Method Pattern**: Complete implementation with Product, ConcreteProduct, Creator, and ConcreteCreator classes
-- **Interactive Terminal UI**: Command-line interface in the browser
-- **Batch Processing**: Processes multiple documents with error isolation (one failure doesn't stop the batch)
-- **Country-Specific Validation**: Each country has unique regulatory requirements
+- **Factory Method Pattern**: Product, ConcreteProduct, Creator, ConcreteCreator, FactoryProvider
+- **Java-Style OOP**: ES6 Classes with getters, abstract classes, interfaces, enums, static methods
+- **Bright Light UI**: Vivid colors, gradients, responsive design
+- **Batch Processing**: Error isolation per document (one failure doesn't stop the batch)
 - **5 Document Types**: Electronic Invoice, Legal Contract, Financial Report, Digital Certificate, Tax Declaration
-- **7 Supported Formats**: pdf, doc, docx, md, csv, txt, xlsx
+- **4 Countries**: Colombia, Mexico, Argentina, Chile (each with unique regulations)
+- **7 Formats**: pdf, doc, docx, md, csv, txt, xlsx
 
 ## How to Run
 
 ### Option 1: Direct Browser (Easiest)
 1. Download or clone this repository
-2. Double-click `main.html` to open in your default browser
+2. Double-click `main.html` to open in your browser
 3. The terminal will load automatically
 
-### Option 2: Local Server (Recommended)
+### Option 2: Local Server
 ```bash
-# Using Python 3
+# Python 3
 python -m http.server 8000
 
-# Using Node.js (if http-server installed)
+# Node.js
 npx http-server
 
-# Using PHP
+# PHP
 php -S localhost:8000
 ```
-Then open `http://localhost:8000/main.html` in your browser.
+Then open `http://localhost:8000/main.html`
 
 ## Usage
 
@@ -42,44 +43,29 @@ Then open `http://localhost:8000/main.html` in your browser.
 | Command | Description |
 |---------|-------------|
 | `help` | Show all available commands |
-| `demo` | Load sample documents from the case study |
+| `demo` | Load 4 sample documents from case study |
 | `batch` | Process all queued documents |
+| `status` | Show queue and processing stats |
 | `clear` | Clear queue and results |
 | `add <type> <country> <format> <filename> <content>` | Add document to queue |
 
-### Document Types
-- `ELECTRONIC_INVOICE`
-- `LEGAL_CONTRACT`
-- `FINANCIAL_REPORT`
-- `DIGITAL_CERTIFICATE`
-- `TAX_DECLARATION`
-
-### Countries
-- `COLOMBIA`
-- `MEXICO`
-- `ARGENTINA`
-- `CHILE`
-
-### Formats
-- `pdf`, `doc`, `docx`, `md`, `csv`, `txt`, `xlsx`
-
-### Quick Start Demo
+### Quick Demo
 1. Type `demo` and press Enter
 2. Type `batch` and press Enter
-3. Observe results - 3/4 documents will succeed, 1 will fail (Mexico invoice missing CFDI)
+3. Observe: 3/4 succeed, 1 fails (Mexico invoice missing CFDI stamp)
 
-### Example: Add Custom Document
+### Example
 ```
-add ELECTRONIC_INVOICE COLOMBIA pdf my_invoice.pdf "Invoice data CUFE=ABC123"
+add ELECTRONIC_INVOICE COLOMBIA pdf invoice_001.pdf "Invoice data CUFE=ABC123"
 add LEGAL_CONTRACT ARGENTINA docx contract.docx "Contract SIGNATURE=digital_ok"
-add TAX_DECLARATION MEXICO csv taxes.csv "Declaration RFC=ABC123456XYZ"
+add TAX_DECLARATION MEXICO csv taxes.csv "Declaration RFC=ABC123456"
 ```
 
 ## Architecture (Factory Method Pattern)
 
 ```
 DocumentProcessorFactory (Creator - Abstract)
-    └── createProcessor() : DocumentProcessor  <-- Factory Method
+    └── createProcessor() : DocumentProcessor  ← Factory Method
           ├── InvoiceProcessorFactory
           ├── ContractProcessorFactory
           ├── FinancialReportProcessorFactory
@@ -92,58 +78,56 @@ DocumentProcessor (Product - Interface)
     ├── FinancialReportProcessor
     ├── DigitalCertificateProcessor
     └── TaxDeclarationProcessor
+
+DocumentProcessorFactoryProvider (Single Access Point)
+    └── getFactory(DocumentType) → Factory
 ```
 
-### Key Classes
+### Java-Style Classes
 
-| Class | Pattern Role | Responsibility |
-|-------|--------------|----------------|
-| `DocumentProcessor` | Product (Interface) | Defines processing contract |
-| `AbstractDocumentProcessor` | Base Product | Shared format validation + template method |
-| `InvoiceProcessor` | ConcreteProduct | CUFE/CFDI/CAE/TED validation per country |
-| `ContractProcessor` | ConcreteProduct | Digital signature validation |
-| `FinancialReportProcessor` | ConcreteProduct | Argentina xlsx requirement |
-| `DigitalCertificateProcessor` | ConcreteProduct | Cert authority validation |
-| `TaxDeclarationProcessor` | ConcreteProduct | RUT/RFC/CUIT/RUT_CHILE validation |
-| `DocumentProcessorFactory` | Creator (Abstract) | Factory Method + processDocument() |
-| `*Factory` (5 classes) | ConcreteCreator | Returns specific processor |
-| `DocumentProcessorFactoryProvider` | Factory Selector | Single access point via `getFactory()` |
-| `BatchDocumentProcessor` | Coordinator | Batch processing with error isolation |
-| `BatchResult` | Result Collector | Tracks success/error counts |
+| Class | Role | Pattern Element |
+|-------|------|-----------------|
+| `DocumentType` | Enum (static constants) | Selection criterion |
+| `Country` | Enum (static constants) | Country codes |
+| `DocumentFormat` | Utility class | Format validation |
+| `Document` | Domain model | Data transfer object |
+| `DocumentProcessor` | Interface | Product (contract) |
+| `AbstractDocumentProcessor` | Abstract class | Template Method |
+| `InvoiceProcessor` | Concrete class | ConcreteProduct |
+| `ContractProcessor` | Concrete class | ConcreteProduct |
+| `FinancialReportProcessor` | Concrete class | ConcreteProduct |
+| `DigitalCertificateProcessor` | Concrete class | ConcreteProduct |
+| `TaxDeclarationProcessor` | Concrete class | ConcreteProduct |
+| `DocumentProcessorFactory` | Abstract class | Creator |
+| `*ProcessorFactory` (5) | Concrete classes | ConcreteCreator |
+| `DocumentProcessorFactoryProvider` | Static utility | Factory Provider |
+| `DocumentFactory` | Static factory | Document creation |
+| `BatchDocumentProcessor` | Service | Batch coordinator |
+| `BatchResult` | Value object | Result collector |
+| `TerminalUI` | Controller | View/UI handler |
 
 ## Country-Specific Validations
 
 | Document Type | Colombia | Mexico | Argentina | Chile |
 |---------------|----------|--------|-----------|-------|
-| **Electronic Invoice** | CUFE (DIAN) | CFDI (SAT) | CAE (AFIP) | TED (SII) |
-| **Legal Contract** | SIGNATURE | SIGNATURE | SIGNATURE | SIGNATURE |
+| **Invoice** | CUFE (DIAN) | CFDI (SAT) | CAE (AFIP) | TED (SII) |
+| **Contract** | SIGNATURE | SIGNATURE | SIGNATURE | SIGNATURE |
 | **Financial Report** | Any format | Any format | **XLSX only** | Any format |
-| **Digital Certificate** | CERT_AUTHORITY | CERT_AUTHORITY | CERT_AUTHORITY | CERT_AUTHORITY |
+| **Certificate** | CERT_AUTHORITY | CERT_AUTHORITY | CERT_AUTHORITY | CERT_AUTHORITY |
 | **Tax Declaration** | RUT | RFC | CUIT | RUT_CHILE |
-
-## Error Handling
-
-The batch processor isolates errors per document:
-- Failed documents are logged with specific error messages
-- Successful documents continue processing
-- Summary shows: `Batch finished: X/Y processed successfully`
 
 ## Technical Details
 
 - **Single file**: `main.html` (HTML + CSS + JavaScript)
-- **No dependencies**: Pure vanilla JavaScript (ES6 Classes)
-- **No build step**: Runs directly in browser
+- **No dependencies**: Pure vanilla JavaScript
+- **No build step**: Direct browser execution
 - **Responsive**: Works on desktop and mobile
-- **OOP**: Full ES6 class-based implementation
+- **OOP**: Full ES6 class-based implementation following Java conventions
 
-## Case Study Context
+## Case Study
 
 Based on **GlobalDocs Solutions** requirements:
 - **Volume**: 50,000+ documents daily
 - **Countries**: Colombia, Mexico, Argentina, Chile
 - **Challenge**: Different regulations per country
 - **Pattern**: Factory Method (delegates object creation to subclasses)
-
-## License
-
-MIT License - Free to use and modify.
