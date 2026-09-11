@@ -1,0 +1,972 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GlobalDocs Solutions - Factory Method Document Processor</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --white: #ffffff;
+            --bg: #f8faff;
+            --bg-card: #ffffff;
+            --bg-input: #f1f5f9;
+            --border: #e2e8f0;
+            --border-focus: #6366f1;
+            --text: #1e293b;
+            --text-secondary: #64748b;
+            --text-muted: #94a3b8;
+            --blue: #3b82f6;
+            --blue-light: #eff6ff;
+            --green: #10b981;
+            --green-light: #ecfdf5;
+            --green-dark: #059669;
+            --purple: #8b5cf6;
+            --purple-light: #f5f3ff;
+            --cyan: #06b6d4;
+            --cyan-light: #ecfeff;
+            --orange: #f59e0b;
+            --orange-light: #fffbeb;
+            --red: #ef4444;
+            --red-light: #fef2f2;
+            --pink: #ec4899;
+            --indigo: #6366f1;
+            --indigo-light: #eef2ff;
+            --shadow-sm: 0 1px 2px rgba(0,0,0,0.04);
+            --shadow: 0 1px 3px rgba(0,0,0,0.06), 0 1px 2px rgba(0,0,0,0.04);
+            --shadow-md: 0 4px 6px rgba(0,0,0,0.05), 0 2px 4px rgba(0,0,0,0.04);
+            --shadow-lg: 0 10px 15px rgba(0,0,0,0.06), 0 4px 6px rgba(0,0,0,0.04);
+            --radius: 12px;
+            --radius-lg: 16px;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: 'Inter', -apple-system, system-ui, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        /* ===== HEADER ===== */
+        .header {
+            background: var(--white);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-lg);
+            padding: 20px 28px;
+            margin-bottom: 20px;
+            box-shadow: var(--shadow);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 12px;
+        }
+
+        .header-left {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+        }
+
+        .logo {
+            width: 44px;
+            height: 44px;
+            background: linear-gradient(135deg, var(--indigo), var(--purple));
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: 800;
+            font-size: 18px;
+            box-shadow: 0 2px 8px rgba(99,102,241,0.3);
+        }
+
+        .header-title {
+            font-size: 18px;
+            font-weight: 700;
+            color: var(--text);
+        }
+
+        .header-subtitle {
+            font-size: 12px;
+            color: var(--text-secondary);
+            margin-top: 1px;
+        }
+
+        .header-badges {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+
+        .badge {
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-size: 11px;
+            font-weight: 600;
+            letter-spacing: 0.3px;
+        }
+
+        .badge-blue { background: var(--blue-light); color: var(--blue); }
+        .badge-purple { background: var(--purple-light); color: var(--purple); }
+        .badge-green { background: var(--green-light); color: var(--green); }
+
+        .stats {
+            display: flex;
+            gap: 16px;
+        }
+
+        .stat {
+            text-align: center;
+        }
+
+        .stat-value {
+            font-size: 20px;
+            font-weight: 800;
+            color: var(--indigo);
+        }
+
+        .stat-label {
+            font-size: 10px;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            font-weight: 600;
+        }
+
+        /* ===== MAIN GRID ===== */
+        .main-grid {
+            display: grid;
+            grid-template-columns: 380px 1fr;
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+
+        @media (max-width: 900px) {
+            .main-grid { grid-template-columns: 1fr; }
+        }
+
+        /* ===== CARD ===== */
+        .card {
+            background: var(--white);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-lg);
+            box-shadow: var(--shadow);
+            overflow: hidden;
+        }
+
+        .card-header {
+            padding: 14px 20px;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            background: var(--bg);
+        }
+
+        .card-title {
+            font-size: 13px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: var(--text-secondary);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .card-title-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+        }
+
+        .card-body {
+            padding: 16px 20px;
+            max-height: 500px;
+            overflow-y: auto;
+        }
+
+        .card-body::-webkit-scrollbar { width: 5px; }
+        .card-body::-webkit-scrollbar-track { background: transparent; }
+        .card-body::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 3px; }
+
+        /* ===== FORM ===== */
+        .form-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .form-group.full { grid-column: 1 / -1; }
+
+        .form-label {
+            font-size: 11px;
+            font-weight: 600;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            letter-spacing: 0.3px;
+        }
+
+        .form-input, .form-select {
+            padding: 9px 12px;
+            border: 1.5px solid var(--border);
+            border-radius: 8px;
+            font-size: 13px;
+            font-family: 'JetBrains Mono', monospace;
+            color: var(--text);
+            background: var(--white);
+            transition: all 0.2s;
+            outline: none;
+        }
+
+        .form-input:focus, .form-select:focus {
+            border-color: var(--border-focus);
+            box-shadow: 0 0 0 3px rgba(99,102,241,0.1);
+        }
+
+        .form-input::placeholder { color: var(--text-muted); }
+
+        .form-select {
+            cursor: pointer;
+            appearance: none;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%2394a3b8' d='M6 8L1 3h10z'/%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 10px center;
+            padding-right: 28px;
+        }
+
+        /* ===== BUTTONS ===== */
+        .btn-row {
+            display: flex;
+            gap: 8px;
+            margin-top: 14px;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            padding: 9px 18px;
+            border: none;
+            border-radius: 8px;
+            font-size: 12px;
+            font-weight: 600;
+            font-family: 'Inter', sans-serif;
+            cursor: pointer;
+            transition: all 0.15s;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            letter-spacing: 0.2px;
+        }
+
+        .btn:active { transform: scale(0.97); }
+
+        .btn-blue { background: var(--blue); color: white; }
+        .btn-blue:hover { background: #2563eb; box-shadow: 0 2px 8px rgba(59,130,246,0.3); }
+
+        .btn-purple { background: var(--purple); color: white; }
+        .btn-purple:hover { background: #7c3aed; box-shadow: 0 2px 8px rgba(139,92,246,0.3); }
+
+        .btn-green { background: var(--green); color: white; }
+        .btn-green:hover { background: var(--green-dark); box-shadow: 0 2px 8px rgba(16,185,129,0.3); }
+
+        .btn-red { background: var(--red); color: white; }
+        .btn-red:hover { background: #dc2626; box-shadow: 0 2px 8px rgba(239,68,68,0.3); }
+
+        .btn-outline {
+            background: var(--white);
+            color: var(--text-secondary);
+            border: 1.5px solid var(--border);
+        }
+
+        .btn-outline:hover { background: var(--bg-input); border-color: #cbd5e1; }
+
+        /* ===== QUEUE ITEMS ===== */
+        .queue-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 10px 12px;
+            background: var(--bg);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            margin-bottom: 8px;
+            transition: all 0.2s;
+        }
+
+        .queue-item:hover {
+            border-color: #cbd5e1;
+            box-shadow: var(--shadow-sm);
+        }
+
+        .queue-num {
+            width: 26px;
+            height: 26px;
+            background: var(--indigo);
+            color: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 11px;
+            font-weight: 700;
+            flex-shrink: 0;
+        }
+
+        .queue-info {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .queue-name {
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--text);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .queue-tags {
+            display: flex;
+            gap: 4px;
+            margin-top: 3px;
+            flex-wrap: wrap;
+        }
+
+        .tag {
+            padding: 1px 7px;
+            border-radius: 4px;
+            font-size: 10px;
+            font-weight: 600;
+        }
+
+        .tag-country { background: #ede9fe; color: #7c3aed; }
+        .tag-type { background: #dbeafe; color: #2563eb; }
+        .tag-format { background: #d1fae5; color: #059669; }
+
+        .queue-remove {
+            width: 24px;
+            height: 24px;
+            border: none;
+            background: transparent;
+            color: var(--text-muted);
+            cursor: pointer;
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+            transition: all 0.15s;
+            flex-shrink: 0;
+        }
+
+        .queue-remove:hover { background: var(--red-light); color: var(--red); }
+
+        /* ===== LOG ===== */
+        .log-item {
+            padding: 8px 12px;
+            margin-bottom: 6px;
+            border-radius: 8px;
+            font-size: 12px;
+            font-family: 'JetBrains Mono', monospace;
+            line-height: 1.5;
+            border-left: 3px solid transparent;
+            animation: fadeIn 0.2s ease-out;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(4px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .log-item.success { background: var(--green-light); border-left-color: var(--green); color: #065f46; }
+        .log-item.error { background: var(--red-light); border-left-color: var(--red); color: #991b1b; }
+        .log-item.info { background: var(--blue-light); border-left-color: var(--blue); color: #1e40af; }
+        .log-item.warning { background: var(--orange-light); border-left-color: var(--orange); color: #92400e; }
+
+        .log-label {
+            font-weight: 700;
+            font-size: 9px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 1px;
+        }
+
+        .log-label.success { color: var(--green-dark); }
+        .log-label.error { color: var(--red); }
+        .log-label.info { color: var(--blue); }
+        .log-label.warning { color: var(--orange); }
+
+        .log-divider {
+            border: none;
+            border-top: 1px dashed var(--border);
+            margin: 8px 0;
+        }
+
+        .log-summary {
+            background: linear-gradient(135deg, var(--blue-light), var(--indigo-light));
+            border: 1px solid var(--blue);
+            border-radius: 10px;
+            padding: 12px 16px;
+            margin: 10px 0;
+            font-size: 13px;
+            font-weight: 700;
+            color: var(--indigo);
+            text-align: center;
+        }
+
+        /* ===== EMPTY STATE ===== */
+        .empty-state {
+            text-align: center;
+            padding: 32px 16px;
+            color: var(--text-muted);
+        }
+
+        .empty-icon {
+            font-size: 36px;
+            margin-bottom: 8px;
+            opacity: 0.6;
+        }
+
+        .empty-text {
+            font-size: 12px;
+            line-height: 1.5;
+        }
+
+        /* ===== ARCHITECTURE SECTION ===== */
+        .arch-section {
+            margin-top: 20px;
+        }
+
+        .arch-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 12px;
+        }
+
+        .arch-card {
+            background: var(--white);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 16px;
+            text-align: center;
+            transition: all 0.2s;
+        }
+
+        .arch-card:hover {
+            box-shadow: var(--shadow-md);
+            transform: translateY(-2px);
+        }
+
+        .arch-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 10px;
+            font-size: 18px;
+        }
+
+        .arch-card-title {
+            font-size: 12px;
+            font-weight: 700;
+            color: var(--text);
+            margin-bottom: 4px;
+        }
+
+        .arch-card-desc {
+            font-size: 11px;
+            color: var(--text-secondary);
+            line-height: 1.4;
+        }
+
+        .bg-blue { background: var(--blue-light); color: var(--blue); }
+        .bg-purple { background: var(--purple-light); color: var(--purple); }
+        .bg-green { background: var(--green-light); color: var(--green); }
+        .bg-cyan { background: var(--cyan-light); color: var(--cyan); }
+        .bg-orange { background: var(--orange-light); color: var(--orange); }
+    </style>
+</head>
+<body>
+
+    <!-- HEADER -->
+    <div class="header">
+        <div class="header-left">
+            <div class="logo">GD</div>
+            <div>
+                <div class="header-title">GlobalDocs Solutions</div>
+                <div class="header-subtitle">Factory Method Pattern - Document Processor</div>
+            </div>
+        </div>
+        <div class="header-badges">
+            <span class="badge badge-blue">Java 17</span>
+            <span class="badge badge-purple">Factory Method</span>
+            <span class="badge badge-green">OOP Classes</span>
+        </div>
+        <div class="stats">
+            <div class="stat">
+                <div class="stat-value" id="stat-queue">0</div>
+                <div class="stat-label">Queue</div>
+            </div>
+            <div class="stat">
+                <div class="stat-value" id="stat-processed">0</div>
+                <div class="stat-label">Processed</div>
+            </div>
+            <div class="stat">
+                <div class="stat-value" id="stat-errors">0</div>
+                <div class="stat-label">Errors</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- MAIN GRID -->
+    <div class="main-grid">
+        <!-- LEFT: Form + Queue -->
+        <div>
+            <!-- FORM CARD -->
+            <div class="card" style="margin-bottom: 20px;">
+                <div class="card-header">
+                    <div class="card-title">
+                        <span class="card-title-dot" style="background: var(--blue);"></span>
+                        Add Document
+                    </div>
+                </div>
+                <div class="card-body">
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label class="form-label">Document Type</label>
+                            <select class="form-select" id="input-type">
+                                <option>ELECTRONIC_INVOICE</option>
+                                <option>LEGAL_CONTRACT</option>
+                                <option>FINANCIAL_REPORT</option>
+                                <option>DIGITAL_CERTIFICATE</option>
+                                <option>TAX_DECLARATION</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Country</label>
+                            <select class="form-select" id="input-country">
+                                <option>COLOMBIA</option>
+                                <option>MEXICO</option>
+                                <option>ARGENTINA</option>
+                                <option>CHILE</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Format</label>
+                            <select class="form-select" id="input-format">
+                                <option>pdf</option>
+                                <option>doc</option>
+                                <option>docx</option>
+                                <option>md</option>
+                                <option>csv</option>
+                                <option>txt</option>
+                                <option>xlsx</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">File Name</label>
+                            <input class="form-input" id="input-filename" placeholder="invoice_001.pdf">
+                        </div>
+                        <div class="form-group full">
+                            <label class="form-label">Content (include required fields)</label>
+                            <input class="form-input" id="input-content" placeholder="Invoice data CUFE=123456">
+                        </div>
+                    </div>
+                    <div class="btn-row">
+                        <button class="btn btn-blue" onclick="addDocument()">+ Add Document</button>
+                        <button class="btn btn-purple" onclick="loadDemo()">Load Demo</button>
+                        <button class="btn btn-green" onclick="processBatch()">Process Batch</button>
+                        <button class="btn btn-red" onclick="clearAll()">Clear All</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- QUEUE CARD -->
+            <div class="card">
+                <div class="card-header">
+                    <div class="card-title">
+                        <span class="card-title-dot" style="background: var(--orange);"></span>
+                        Document Queue
+                    </div>
+                    <span id="queue-badge" style="font-size:11px; color:var(--text-muted);">0 docs</span>
+                </div>
+                <div class="card-body" id="queue-panel">
+                    <div class="empty-state">
+                        <div class="empty-icon">📄</div>
+                        <div class="empty-text">No documents in queue.<br>Click <b>Load Demo</b> or add manually.</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- RIGHT: Log -->
+        <div class="card">
+            <div class="card-header">
+                <div class="card-title">
+                    <span class="card-title-dot" style="background: var(--green);"></span>
+                    Processing Log
+                </div>
+                <button class="btn btn-outline" onclick="clearLog()" style="padding:4px 10px; font-size:11px;">Clear Log</button>
+            </div>
+            <div class="card-body" id="log-panel"></div>
+        </div>
+    </div>
+
+    <!-- ARCHITECTURE SECTION -->
+    <div class="arch-section">
+        <div class="card">
+            <div class="card-header">
+                <div class="card-title">
+                    <span class="card-title-dot" style="background: var(--purple);"></span>
+                    Factory Method Architecture (20 Java Classes)
+                </div>
+            </div>
+            <div class="card-body">
+                <div class="arch-grid">
+                    <div class="arch-card">
+                        <div class="arch-icon bg-blue">I</div>
+                        <div class="arch-card-title">DocumentProcessor</div>
+                        <div class="arch-card-desc">Product interface. Defines the contract: validateFormat, validateCountryRegulation, process.</div>
+                    </div>
+                    <div class="arch-card">
+                        <div class="arch-icon bg-cyan">A</div>
+                        <div class="arch-card-title">AbstractDocumentProcessor</div>
+                        <div class="arch-card-desc">Abstract product with Template Method. Shared format validation + process() flow.</div>
+                    </div>
+                    <div class="arch-card">
+                        <div class="arch-icon bg-green">P</div>
+                        <div class="arch-card-title">5 ConcreteProducts</div>
+                        <div class="arch-card-desc">InvoiceProcessor, ContractProcessor, FinancialReportProcessor, DigitalCertificateProcessor, TaxDeclarationProcessor.</div>
+                    </div>
+                    <div class="arch-card">
+                        <div class="arch-icon bg-purple">C</div>
+                        <div class="arch-card-title">DocumentProcessorFactory</div>
+                        <div class="arch-card-desc">Creator abstract class. Defines createProcessor() factory method.</div>
+                    </div>
+                    <div class="arch-card">
+                        <div class="arch-icon bg-orange">F</div>
+                        <div class="arch-card-title">5 ConcreteCreators</div>
+                        <div class="arch-card-desc">InvoiceProcessorFactory, ContractProcessorFactory, FinancialReportProcessorFactory, DigitalCertificateProcessorFactory, TaxDeclarationProcessorFactory.</div>
+                    </div>
+                    <div class="arch-card">
+                        <div class="arch-icon bg-blue">S</div>
+                        <div class="arch-card-title">FactoryProvider</div>
+                        <div class="arch-card-desc">Single access point. getFactory(DocumentType) returns the correct ConcreteCreator.</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+<script>
+// ================================================================
+// FACTORY METHOD PATTERN - Mirror of Java Implementation
+// ================================================================
+
+// --- Enums ---
+const DocumentType = {
+    ELECTRONIC_INVOICE: 'ELECTRONIC_INVOICE',
+    LEGAL_CONTRACT: 'LEGAL_CONTRACT',
+    FINANCIAL_REPORT: 'FINANCIAL_REPORT',
+    DIGITAL_CERTIFICATE: 'DIGITAL_CERTIFICATE',
+    TAX_DECLARATION: 'TAX_DECLARATION'
+};
+
+const Country = {
+    COLOMBIA: 'COLOMBIA', MEXICO: 'MEXICO', ARGENTINA: 'ARGENTINA', CHILE: 'CHILE'
+};
+
+// --- Domain Model ---
+class Document {
+    constructor(fileName, format, type, country, content) {
+        this.fileName = fileName;
+        this.format = format.toLowerCase();
+        this.type = type;
+        this.country = country;
+        this.content = content;
+    }
+}
+
+class DocumentProcessingException extends Error {
+    constructor(msg) { super(msg); this.name = 'DocumentProcessingException'; }
+}
+
+// --- Product Interface + Abstract Product ---
+class AbstractDocumentProcessor {
+    validateFormat(doc) {
+        if (!['pdf','doc','docx','md','csv','txt','xlsx'].includes(doc.format)) {
+            throw new DocumentProcessingException(`Unsupported format "${doc.format}" for ${doc.fileName}`);
+        }
+    }
+    validateCountryRegulation(doc) { throw new Error('abstract'); }
+    process(doc) {
+        this.validateFormat(doc);
+        this.validateCountryRegulation(doc);
+        this.doProcess(doc);
+    }
+    doProcess(doc) { throw new Error('abstract'); }
+    log(msg, type) { TerminalUI.addResult(msg, type || 'success'); }
+}
+
+// --- Concrete Products ---
+class InvoiceProcessor extends AbstractDocumentProcessor {
+    validateCountryRegulation(doc) {
+        const rules = {
+            COLOMBIA: { field: 'CUFE', agency: 'DIAN' },
+            MEXICO: { field: 'CFDI', agency: 'SAT' },
+            ARGENTINA: { field: 'CAE', agency: 'AFIP' },
+            CHILE: { field: 'TED', agency: 'SII' }
+        };
+        const r = rules[doc.country];
+        if (r && !doc.content.includes(r.field)) {
+            throw new DocumentProcessingException(`${doc.country}: missing ${r.field} stamp (${r.agency} requirement)`);
+        }
+    }
+    doProcess(doc) { this.log(`Processing electronic invoice: ${doc.fileName} [${doc.country}]`); }
+}
+
+class ContractProcessor extends AbstractDocumentProcessor {
+    validateCountryRegulation(doc) {
+        if (!doc.content.includes('SIGNATURE'))
+            throw new DocumentProcessingException(`Legal contract missing digital signature for ${doc.country}`);
+    }
+    doProcess(doc) { this.log(`Processing legal contract: ${doc.fileName}`); }
+}
+
+class FinancialReportProcessor extends AbstractDocumentProcessor {
+    validateCountryRegulation(doc) {
+        if (doc.country === 'ARGENTINA' && doc.format !== 'xlsx')
+            throw new DocumentProcessingException('Argentina: financial reports must be xlsx format');
+    }
+    doProcess(doc) { this.log(`Processing financial report: ${doc.fileName}`); }
+}
+
+class DigitalCertificateProcessor extends AbstractDocumentProcessor {
+    validateCountryRegulation(doc) {
+        if (!doc.content.includes('CERT_AUTHORITY'))
+            throw new DocumentProcessingException(`Digital certificate missing certifying authority for ${doc.country}`);
+    }
+    doProcess(doc) { this.log(`Processing digital certificate: ${doc.fileName}`); }
+}
+
+class TaxDeclarationProcessor extends AbstractDocumentProcessor {
+    validateCountryRegulation(doc) {
+        const fields = { COLOMBIA: 'RUT', MEXICO: 'RFC', ARGENTINA: 'CUIT', CHILE: 'RUT_CHILE' };
+        const f = fields[doc.country];
+        if (f && !doc.content.includes(f))
+            throw new DocumentProcessingException(`Tax declaration missing required field: ${f}`);
+    }
+    doProcess(doc) { this.log(`Processing tax declaration: ${doc.fileName}`); }
+}
+
+// --- Creator + Concrete Creators ---
+class DocumentProcessorFactory {
+    createProcessor() { throw new Error('abstract'); }
+    processDocument(doc) { this.createProcessor().process(doc); }
+}
+
+class InvoiceProcessorFactory extends DocumentProcessorFactory { createProcessor() { return new InvoiceProcessor(); } }
+class ContractProcessorFactory extends DocumentProcessorFactory { createProcessor() { return new ContractProcessor(); } }
+class FinancialReportProcessorFactory extends DocumentProcessorFactory { createProcessor() { return new FinancialReportProcessor(); } }
+class DigitalCertificateProcessorFactory extends DocumentProcessorFactory { createProcessor() { return new DigitalCertificateProcessor(); } }
+class TaxDeclarationProcessorFactory extends DocumentProcessorFactory { createProcessor() { return new TaxDeclarationProcessor(); } }
+
+// --- Factory Provider ---
+class DocumentProcessorFactoryProvider {
+    static getFactory(type) {
+        const map = {
+            ELECTRONIC_INVOICE: InvoiceProcessorFactory,
+            LEGAL_CONTRACT: ContractProcessorFactory,
+            FINANCIAL_REPORT: FinancialReportProcessorFactory,
+            DIGITAL_CERTIFICATE: DigitalCertificateProcessorFactory,
+            TAX_DECLARATION: TaxDeclarationProcessorFactory
+        };
+        const Cls = map[type];
+        if (!Cls) throw new Error('Unknown type: ' + type);
+        return new Cls();
+    }
+}
+
+// --- Batch Processing ---
+class BatchResult {
+    constructor() { this.total = 0; this.success = 0; this.errors = []; }
+    registerSuccess() { this.success++; this.total++; }
+    registerError(file, reason) { this.errors.push({ file, reason }); this.total++; }
+    getSummary() {
+        const pct = this.total === 0 ? 0 : Math.round((this.success / this.total) * 100);
+        return `${this.success}/${this.total} processed successfully (${pct}%)`;
+    }
+}
+
+class BatchDocumentProcessor {
+    processBatch(docs) {
+        const result = new BatchResult();
+        for (const doc of docs) {
+            try {
+                DocumentProcessorFactoryProvider.getFactory(doc.type).processDocument(doc);
+                result.registerSuccess();
+            } catch (e) {
+                const reason = e instanceof DocumentProcessingException ? e.message : `Unexpected: ${e.message}`;
+                result.registerError(doc.fileName, reason);
+            }
+        }
+        return result;
+    }
+}
+
+// ================================================================
+// UI CONTROLLER
+// ================================================================
+const TerminalUI = {
+    _queue: [],
+    _processed: 0,
+    _errors: 0,
+};
+
+const TerminalUI_actions = {
+    addDocument() {
+        const type = document.getElementById('input-type').value;
+        const country = document.getElementById('input-country').value;
+        const format = document.getElementById('input-format').value;
+        const fileName = document.getElementById('input-filename').value.trim();
+        const content = document.getElementById('input-content').value.trim();
+
+        if (!fileName || !content) {
+            TerminalUI_addResult('File name and content are required.', 'error');
+            return;
+        }
+
+        const doc = new Document(fileName, format, type, country, content);
+        TerminalUI._queue.push(doc);
+        TerminalUI_addResult(`Added: ${doc.fileName} [${doc.country} | ${doc.type} | ${doc.format}]`, 'success');
+        renderQueue();
+        updateStats();
+
+        document.getElementById('input-filename').value = '';
+        document.getElementById('input-content').value = '';
+    },
+
+    loadDemo() {
+        TerminalUI._queue = [
+            new Document('invoice_co_001.pdf', 'pdf', 'ELECTRONIC_INVOICE', 'COLOMBIA', 'Invoice data CUFE=123456'),
+            new Document('invoice_mx_002.pdf', 'pdf', 'ELECTRONIC_INVOICE', 'MEXICO', 'Invoice data without stamp'),
+            new Document('tax_ar_003.csv', 'csv', 'TAX_DECLARATION', 'ARGENTINA', 'Declaration CUIT=30-12345678-9'),
+            new Document('contract_cl_004.docx', 'docx', 'LEGAL_CONTRACT', 'CHILE', 'Contract SIGNATURE=digital_ok')
+        ];
+        TerminalUI_addResult(`Loaded ${TerminalUI._queue.length} sample documents from case study.`, 'info');
+        renderQueue();
+        updateStats();
+    },
+
+    processBatch() {
+        if (TerminalUI._queue.length === 0) {
+            TerminalUI_addResult('Queue is empty. Add documents first.', 'warning');
+            return;
+        }
+        TerminalUI_addResult('STARTING BATCH PROCESSING...', 'info');
+
+        const processor = new BatchDocumentProcessor();
+        const result = processor.processBatch([...TerminalUI._queue]);
+        TerminalUI._queue = [];
+
+        result.errors.forEach(e => {
+            TerminalUI_addResult(`[ERROR] ${e.file}: ${e.reason}`, 'error');
+        });
+
+        const summary = result.getSummary();
+        TerminalUI_addResult(summary, result.errors.length === 0 ? 'success' : 'warning');
+
+        TerminalUI._processed += result.success;
+        TerminalUI._errors += result.errors.length;
+        renderQueue();
+        updateStats();
+    },
+
+    clearAll() {
+        TerminalUI._queue = [];
+        TerminalUI._processed = 0;
+        TerminalUI._errors = 0;
+        document.getElementById('log-panel').innerHTML = '';
+        renderQueue();
+        updateStats();
+        TerminalUI_addResult('Cleared.', 'info');
+    }
+};
+
+function addDocument() { TerminalUI_actions.addDocument(); }
+function loadDemo() { TerminalUI_actions.loadDemo(); }
+function processBatch() { TerminalUI_actions.processBatch(); }
+function clearAll() { TerminalUI_actions.clearAll(); }
+function clearLog() { document.getElementById('log-panel').innerHTML = ''; }
+
+function TerminalUI_addResult(message, type) {
+    const panel = document.getElementById('log-panel');
+    const item = document.createElement('div');
+    item.className = `log-item ${type}`;
+    item.innerHTML = `<div class="log-label ${type}">[${type.toUpperCase()}]</div>${message}`;
+    panel.appendChild(item);
+    panel.scrollTop = panel.scrollHeight;
+}
+
+function renderQueue() {
+    const panel = document.getElementById('queue-panel');
+    panel.innerHTML = '';
+    if (TerminalUI._queue.length === 0) {
+        panel.innerHTML = '<div class="empty-state"><div class="empty-icon">📄</div><div class="empty-text">No documents in queue.<br>Click <b>Load Demo</b> or add manually.</div></div>';
+    } else {
+        TerminalUI._queue.forEach((doc, i) => {
+            const el = document.createElement('div');
+            el.className = 'queue-item';
+            el.innerHTML = `
+                <div class="queue-num">${i+1}</div>
+                <div class="queue-info">
+                    <div class="queue-name">${doc.fileName}</div>
+                    <div class="queue-tags">
+                        <span class="tag tag-country">${doc.country}</span>
+                        <span class="tag tag-type">${doc.type.replace(/_/g, ' ')}</span>
+                        <span class="tag tag-format">${doc.format}</span>
+                    </div>
+                </div>
+                <button class="queue-remove" onclick="removeDoc(${i})">✕</button>
+            `;
+            panel.appendChild(el);
+        });
+    }
+    document.getElementById('queue-badge').textContent = TerminalUI._queue.length + ' docs';
+}
+
+function removeDoc(index) {
+    TerminalUI._queue.splice(index, 1);
+    renderQueue();
+    updateStats();
+}
+
+function updateStats() {
+    document.getElementById('stat-queue').textContent = TerminalUI._queue.length;
+    document.getElementById('stat-processed').textContent = TerminalUI._processed;
+    document.getElementById('stat-errors').textContent = TerminalUI._errors;
+}
+
+// Init
+TerminalUI_addResult('Welcome to GlobalDocs Solutions Document Processor', 'info');
+TerminalUI_addResult('Factory Method pattern | Java 17 | OOP Classes', 'info');
+TerminalUI_addResult('Click "Load Demo" or add documents manually.', 'info');
+renderQueue();
+</script>
+</body>
+</html>
