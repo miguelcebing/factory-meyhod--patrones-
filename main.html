@@ -1,0 +1,887 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GlobalDocs Solutions - Document Processor Terminal</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
+            background-color: #1a1a2e;
+            color: #00ff88;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        .terminal-header {
+            background: linear-gradient(90deg, #0f0f23 0%, #1a1a2e 100%);
+            border-bottom: 2px solid #00ff88;
+            padding: 10px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-shrink: 0;
+        }
+
+        .terminal-title {
+            font-size: 14px;
+            font-weight: bold;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+
+        .terminal-status {
+            display: flex;
+            gap: 15px;
+            font-size: 11px;
+        }
+
+        .status-item {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .status-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: #00ff88;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        .terminal-body {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        .panel {
+            border-right: 1px solid #00ff88;
+            background: #0f0f23;
+        }
+
+        .panel:last-child {
+            border-right: none;
+        }
+
+        .panel-header {
+            background: #16213e;
+            padding: 8px 12px;
+            border-bottom: 1px solid #00ff88;
+            font-size: 11px;
+            font-weight: bold;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .panel-content {
+            flex: 1;
+            overflow-y: auto;
+            padding: 10px;
+            font-size: 12px;
+            line-height: 1.6;
+        }
+
+        .panels-container {
+            display: flex;
+            flex: 1;
+            overflow: hidden;
+        }
+
+        .queue-panel {
+            width: 35%;
+            min-width: 300px;
+        }
+
+        .results-panel {
+            width: 65%;
+        }
+
+        .document-item {
+            padding: 6px 10px;
+            margin: 4px 0;
+            background: rgba(0, 255, 136, 0.1);
+            border-left: 3px solid #00ff88;
+            border-radius: 0 4px 4px 0;
+            transition: all 0.2s;
+        }
+
+        .document-item:hover {
+            background: rgba(0, 255, 136, 0.2);
+        }
+
+        .document-item.pending {
+            border-left-color: #ffaa00;
+        }
+
+        .document-item.success {
+            border-left-color: #00ff88;
+        }
+
+        .document-item.error {
+            border-left-color: #ff3366;
+        }
+
+        .document-name {
+            font-weight: bold;
+            color: #ffffff;
+        }
+
+        .document-meta {
+            font-size: 10px;
+            color: #88ccaa;
+            margin-top: 2px;
+        }
+
+        .result-line {
+            padding: 4px 8px;
+            margin: 2px 0;
+            border-radius: 3px;
+            font-family: inherit;
+            white-space: pre-wrap;
+            word-break: break-word;
+        }
+
+        .result-line.success {
+            background: rgba(0, 255, 136, 0.15);
+            border-left: 3px solid #00ff88;
+        }
+
+        .result-line.error {
+            background: rgba(255, 51, 102, 0.15);
+            border-left: 3px solid #ff3366;
+        }
+
+        .result-line.info {
+            background: rgba(0, 170, 255, 0.15);
+            border-left: 3px solid #00aaff;
+        }
+
+        .result-line.warning {
+            background: rgba(255, 170, 0, 0.15);
+            border-left: 3px solid #ffaa00;
+        }
+
+        .terminal-input-area {
+            background: #0f0f23;
+            border-top: 2px solid #00ff88;
+            padding: 10px 20px;
+            flex-shrink: 0;
+        }
+
+        .input-line {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .prompt {
+            color: #00ff88;
+            font-weight: bold;
+            white-space: nowrap;
+        }
+
+        .command-input {
+            flex: 1;
+            background: transparent;
+            border: none;
+            outline: none;
+            color: #00ff88;
+            font-family: inherit;
+            font-size: 13px;
+            caret-color: #00ff88;
+        }
+
+        .command-input::placeholder {
+            color: #336644;
+        }
+
+        .help-text {
+            font-size: 11px;
+            color: #448866;
+            margin-top: 5px;
+        }
+
+        .scrollbar-hide::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .scrollbar-hide::-webkit-scrollbar-track {
+            background: #0f0f23;
+        }
+
+        .scrollbar-hide::-webkit-scrollbar-thumb {
+            background: #00ff88;
+            border-radius: 3px;
+        }
+
+        .scrollbar-hide::-webkit-scrollbar-thumb:hover {
+            background: #00cc6a;
+        }
+
+        @media (max-width: 900px) {
+            .panels-container {
+                flex-direction: column;
+            }
+            .queue-panel, .results-panel {
+                width: 100%;
+                min-width: 100%;
+                border-right: none;
+                border-bottom: 1px solid #00ff88;
+            }
+        }
+
+        .empty-state {
+            color: #336644;
+            font-style: italic;
+            text-align: center;
+            padding: 20px;
+        }
+
+        .batch-summary {
+            background: rgba(0, 170, 255, 0.2);
+            border: 1px solid #00aaff;
+            border-radius: 4px;
+            padding: 10px;
+            margin: 10px 0;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <div class="terminal-header">
+        <div class="terminal-title">GlobalDocs Solutions - Document Processor</div>
+        <div class="terminal-status">
+            <div class="status-item">
+                <div class="status-dot"></div>
+                <span>SYSTEM ONLINE</span>
+            </div>
+            <div class="status-item">
+                <span id="queue-count">Queue: 0</span>
+            </div>
+            <div class="status-item">
+                <span id="processed-count">Processed: 0</span>
+            </div>
+        </div>
+    </div>
+
+    <div class="terminal-body">
+        <div class="panels-container">
+            <div class="panel queue-panel">
+                <div class="panel-header">Document Queue</div>
+                <div class="panel-content scrollbar-hide" id="queue-panel">
+                    <div class="empty-state">No documents in queue. Type 'help' for commands.</div>
+                </div>
+            </div>
+            <div class="panel results-panel">
+                <div class="panel-header">Processing Results</div>
+                <div class="panel-content scrollbar-hide" id="results-panel">
+                    <div class="empty-state">Results will appear here after batch processing.</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="terminal-input-area">
+            <div class="input-line">
+                <span class="prompt">></span>
+                <input type="text" class="command-input" id="command-input" placeholder="Enter command (help for list)..." autocomplete="off" spellcheck="false">
+            </div>
+            <div class="help-text" id="help-text">Commands: add <type> <country> <format> <filename> <content> | batch | clear | help | demo</div>
+        </div>
+    </div>
+
+    <script>
+        // ============================================================
+        // FACTORY METHOD PATTERN IMPLEMENTATION
+        // GlobalDocs Solutions - Document Processing System
+        // ============================================================
+
+        // ---------- ENUMS ----------
+        const DocumentType = Object.freeze({
+            ELECTRONIC_INVOICE: 'ELECTRONIC_INVOICE',
+            LEGAL_CONTRACT: 'LEGAL_CONTRACT',
+            FINANCIAL_REPORT: 'FINANCIAL_REPORT',
+            DIGITAL_CERTIFICATE: 'DIGITAL_CERTIFICATE',
+            TAX_DECLARATION: 'TAX_DECLARATION'
+        });
+
+        const Country = Object.freeze({
+            COLOMBIA: 'COLOMBIA',
+            MEXICO: 'MEXICO',
+            ARGENTINA: 'ARGENTINA',
+            CHILE: 'CHILE'
+        });
+
+        const DocumentFormat = Object.freeze({
+            PDF: 'pdf',
+            DOC: 'doc',
+            DOCX: 'docx',
+            MD: 'md',
+            CSV: 'csv',
+            TXT: 'txt',
+            XLSX: 'xlsx'
+        });
+
+        const SUPPORTED_FORMATS = Object.values(DocumentFormat);
+
+        // ---------- DOMAIN MODEL ----------
+        class Document {
+            constructor(fileName, format, type, country, content) {
+                this.fileName = fileName;
+                this.format = format.toLowerCase();
+                this.type = type;
+                this.country = country;
+                this.content = content;
+            }
+
+            getFileName() { return this.fileName; }
+            getFormat() { return this.format; }
+            getType() { return this.type; }
+            getCountry() { return this.country; }
+            getContent() { return this.content; }
+        }
+
+        // ---------- CUSTOM EXCEPTION ----------
+        class DocumentProcessingException extends Error {
+            constructor(message) {
+                super(message);
+                this.name = 'DocumentProcessingException';
+            }
+        }
+
+        // ---------- PRODUCT INTERFACE ----------
+        class DocumentProcessor {
+            validateFormat(document) {
+                throw new Error('validateFormat() must be implemented');
+            }
+
+            validateCountryRegulation(document) {
+                throw new Error('validateCountryRegulation() must be implemented');
+            }
+
+            process(document) {
+                throw new Error('process() must be implemented');
+            }
+        }
+
+        // ---------- ABSTRACT PRODUCT (Template Method) ----------
+        class AbstractDocumentProcessor extends DocumentProcessor {
+            validateFormat(document) {
+                if (!SUPPORTED_FORMATS.includes(document.getFormat())) {
+                    throw new DocumentProcessingException(
+                        `Unsupported format: ${document.getFormat()} for file ${document.getFileName()}`
+                    );
+                }
+            }
+
+            validateCountryRegulation(document) {
+                throw new Error('validateCountryRegulation() must be implemented by subclass');
+            }
+
+            process(document) {
+                this.validateFormat(document);
+                this.validateCountryRegulation(document);
+                this.doProcess(document);
+            }
+
+            doProcess(document) {
+                throw new Error('doProcess() must be implemented by subclass');
+            }
+        }
+
+        // ---------- CONCRETE PRODUCTS ----------
+        class InvoiceProcessor extends AbstractDocumentProcessor {
+            validateCountryRegulation(document) {
+                const country = document.getCountry();
+                const content = document.getContent();
+
+                switch (country) {
+                    case Country.COLOMBIA:
+                        if (!content.includes('CUFE')) {
+                            throw new DocumentProcessingException(
+                                'Colombia: missing CUFE code (DIAN requirement)'
+                            );
+                        }
+                        break;
+                    case Country.MEXICO:
+                        if (!content.includes('CFDI')) {
+                            throw new DocumentProcessingException(
+                                'Mexico: missing CFDI stamp (SAT requirement)'
+                            );
+                        }
+                        break;
+                    case Country.ARGENTINA:
+                        if (!content.includes('CAE')) {
+                            throw new DocumentProcessingException(
+                                'Argentina: missing CAE code (AFIP requirement)'
+                            );
+                        }
+                        break;
+                    case Country.CHILE:
+                        if (!content.includes('TED')) {
+                            throw new DocumentProcessingException(
+                                'Chile: missing TED stamp (SII requirement)'
+                            );
+                        }
+                        break;
+                }
+            }
+
+            doProcess(document) {
+                this.log(`Processing electronic invoice: ${document.getFileName()} [${document.getCountry()}]`);
+            }
+
+            log(message) {
+                TerminalUI.addResult(message, 'success');
+            }
+        }
+
+        class ContractProcessor extends AbstractDocumentProcessor {
+            validateCountryRegulation(document) {
+                if (!document.getContent().includes('SIGNATURE')) {
+                    throw new DocumentProcessingException(
+                        `Legal contract missing digital signature for ${document.getCountry()}`
+                    );
+                }
+            }
+
+            doProcess(document) {
+                this.log(`Processing legal contract: ${document.getFileName()}`);
+            }
+
+            log(message) {
+                TerminalUI.addResult(message, 'success');
+            }
+        }
+
+        class FinancialReportProcessor extends AbstractDocumentProcessor {
+            validateCountryRegulation(document) {
+                if (document.getCountry() === Country.ARGENTINA && document.getFormat() !== 'xlsx') {
+                    throw new DocumentProcessingException(
+                        'Argentina: financial reports must be xlsx format'
+                    );
+                }
+            }
+
+            doProcess(document) {
+                this.log(`Processing financial report: ${document.getFileName()}`);
+            }
+
+            log(message) {
+                TerminalUI.addResult(message, 'success');
+            }
+        }
+
+        class DigitalCertificateProcessor extends AbstractDocumentProcessor {
+            validateCountryRegulation(document) {
+                if (!document.getContent().includes('CERT_AUTHORITY')) {
+                    throw new DocumentProcessingException(
+                        `Digital certificate missing certifying authority for ${document.getCountry()}`
+                    );
+                }
+            }
+
+            doProcess(document) {
+                this.log(`Processing digital certificate: ${document.getFileName()}`);
+            }
+
+            log(message) {
+                TerminalUI.addResult(message, 'success');
+            }
+        }
+
+        class TaxDeclarationProcessor extends AbstractDocumentProcessor {
+            validateCountryRegulation(document) {
+                const country = document.getCountry();
+                const content = document.getContent();
+
+                const requiredFields = {
+                    [Country.COLOMBIA]: 'RUT',
+                    [Country.MEXICO]: 'RFC',
+                    [Country.ARGENTINA]: 'CUIT',
+                    [Country.CHILE]: 'RUT_CHILE'
+                };
+
+                const field = requiredFields[country];
+                if (field && !content.includes(field)) {
+                    throw new DocumentProcessingException(
+                        `Tax declaration missing required field: ${field}`
+                    );
+                }
+            }
+
+            doProcess(document) {
+                this.log(`Processing tax declaration: ${document.getFileName()}`);
+            }
+
+            log(message) {
+                TerminalUI.addResult(message, 'success');
+            }
+        }
+
+        // ---------- CREATOR (Abstract Factory) ----------
+        class DocumentProcessorFactory {
+            createProcessor() {
+                throw new Error('createProcessor() must be implemented by subclass');
+            }
+
+            processDocument(document) {
+                const processor = this.createProcessor();
+                processor.process(document);
+            }
+        }
+
+        // ---------- CONCRETE CREATORS ----------
+        class InvoiceProcessorFactory extends DocumentProcessorFactory {
+            createProcessor() {
+                return new InvoiceProcessor();
+            }
+        }
+
+        class ContractProcessorFactory extends DocumentProcessorFactory {
+            createProcessor() {
+                return new ContractProcessor();
+            }
+        }
+
+        class FinancialReportProcessorFactory extends DocumentProcessorFactory {
+            createProcessor() {
+                return new FinancialReportProcessor();
+            }
+        }
+
+        class DigitalCertificateProcessorFactory extends DocumentProcessorFactory {
+            createProcessor() {
+                return new DigitalCertificateProcessor();
+            }
+        }
+
+        class TaxDeclarationProcessorFactory extends DocumentProcessorFactory {
+            createProcessor() {
+                return new TaxDeclarationProcessor();
+            }
+        }
+
+        // ---------- FACTORY PROVIDER (Single Access Point) ----------
+        class DocumentProcessorFactoryProvider {
+            static getFactory(documentType) {
+                const factories = {
+                    [DocumentType.ELECTRONIC_INVOICE]: () => new InvoiceProcessorFactory(),
+                    [DocumentType.LEGAL_CONTRACT]: () => new ContractProcessorFactory(),
+                    [DocumentType.FINANCIAL_REPORT]: () => new FinancialReportProcessorFactory(),
+                    [DocumentType.DIGITAL_CERTIFICATE]: () => new DigitalCertificateProcessorFactory(),
+                    [DocumentType.TAX_DECLARATION]: () => new TaxDeclarationProcessorFactory()
+                };
+
+                const factoryCreator = factories[documentType];
+                if (!factoryCreator) {
+                    throw new Error(`Unknown document type: ${documentType}`);
+                }
+                return factoryCreator();
+            }
+        }
+
+        // ---------- BATCH PROCESSING ----------
+        class BatchResult {
+            constructor() {
+                this.total = 0;
+                this.success = 0;
+                this.errors = [];
+            }
+
+            registerSuccess() {
+                this.success++;
+                this.total++;
+            }
+
+            registerError(fileName, reason) {
+                this.errors.push(`${fileName} -> ${reason}`);
+                this.total++;
+            }
+
+            getSummary() {
+                return `Batch finished: ${this.success}/${this.total} processed successfully`;
+            }
+
+            getErrors() {
+                return this.errors;
+            }
+        }
+
+        class BatchDocumentProcessor {
+            processBatch(documents) {
+                const result = new BatchResult();
+
+                for (const document of documents) {
+                    try {
+                        const factory = DocumentProcessorFactoryProvider.getFactory(document.getType());
+                        factory.processDocument(document);
+                        result.registerSuccess();
+                    } catch (e) {
+                        if (e instanceof DocumentProcessingException) {
+                            result.registerError(document.getFileName(), e.message);
+                        } else {
+                            result.registerError(document.getFileName(), `Unexpected error: ${e.message}`);
+                        }
+                    }
+                }
+
+                return result;
+            }
+        }
+
+        // ============================================================
+        // TERMINAL UI CONTROLLER
+        // ============================================================
+        const TerminalUI = (function() {
+            let documentQueue = [];
+            let processedCount = 0;
+            let isProcessing = false;
+
+            const queuePanel = document.getElementById('queue-panel');
+            const resultsPanel = document.getElementById('results-panel');
+            const commandInput = document.getElementById('command-input');
+            const queueCountEl = document.getElementById('queue-count');
+            const processedCountEl = document.getElementById('processed-count');
+            const helpText = document.getElementById('help-text');
+
+            function init() {
+                commandInput.addEventListener('keydown', handleKeyDown);
+                commandInput.focus();
+                renderQueue();
+                addResult('Welcome to GlobalDocs Solutions Document Processor Terminal', 'info');
+                addResult('Type "help" for available commands', 'info');
+                addResult('Type "demo" to load sample documents', 'info');
+            }
+
+            function handleKeyDown(e) {
+                if (e.key === 'Enter') {
+                    const command = commandInput.value.trim();
+                    if (command) {
+                        executeCommand(command);
+                        commandInput.value = '';
+                    }
+                }
+            }
+
+            function executeCommand(command) {
+                addResult(`> ${command}`, 'info');
+
+                const parts = command.split(' ');
+                const cmd = parts[0].toLowerCase();
+                const args = parts.slice(1);
+
+                switch (cmd) {
+                    case 'help':
+                        showHelp();
+                        break;
+                    case 'add':
+                        handleAdd(args);
+                        break;
+                    case 'batch':
+                        handleBatch();
+                        break;
+                    case 'clear':
+                        handleClear();
+                        break;
+                    case 'demo':
+                        handleDemo();
+                        break;
+                    default:
+                        addResult(`Unknown command: ${cmd}. Type 'help' for available commands.`, 'error');
+                }
+            }
+
+            function showHelp() {
+                addResult('═══════════════════════════════════════════════════════════', 'info');
+                addResult('AVAILABLE COMMANDS:', 'info');
+                addResult('═══════════════════════════════════════════════════════════', 'info');
+                addResult('add <type> <country> <format> <filename> <content>', 'info');
+                addResult('  Add a document to the processing queue', 'info');
+                addResult('', 'info');
+                addResult('  Types:', 'info');
+                Object.values(DocumentType).forEach(t => addResult(`    ${t}`, 'info'));
+                addResult('', 'info');
+                addResult('  Countries:', 'info');
+                Object.values(Country).forEach(c => addResult(`    ${c}`, 'info'));
+                addResult('', 'info');
+                addResult('  Formats:', 'info');
+                Object.values(DocumentFormat).forEach(f => addResult(`    ${f}`, 'info'));
+                addResult('', 'info');
+                addResult('  Example:', 'info');
+                addResult('    add ELECTRONIC_INVOICE COLOMBIA pdf invoice_001.pdf "Invoice data CUFE=123456"', 'info');
+                addResult('', 'info');
+                addResult('batch                    Process all queued documents', 'info');
+                addResult('clear                    Clear queue and results', 'info');
+                addResult('demo                     Load sample documents from case study', 'info');
+                addResult('help                     Show this help', 'info');
+                addResult('═══════════════════════════════════════════════════════════', 'info');
+            }
+
+            function handleAdd(args) {
+                if (args.length < 5) {
+                    addResult('Usage: add <type> <country> <format> <filename> <content>', 'error');
+                    addResult('Note: content can contain spaces (everything after filename)', 'warning');
+                    return;
+                }
+
+                const type = args[0].toUpperCase();
+                const country = args[1].toUpperCase();
+                const format = args[2].toLowerCase();
+                const fileName = args[3];
+                const content = args.slice(4).join(' ');
+
+                if (!Object.values(DocumentType).includes(type)) {
+                    addResult(`Invalid document type: ${type}`, 'error');
+                    return;
+                }
+
+                if (!Object.values(Country).includes(country)) {
+                    addResult(`Invalid country: ${country}`, 'error');
+                    return;
+                }
+
+                if (!SUPPORTED_FORMATS.includes(format)) {
+                    addResult(`Unsupported format: ${format}`, 'error');
+                    return;
+                }
+
+                const document = new Document(fileName, format, type, country, content);
+                documentQueue.push(document);
+                addResult(`Added to queue: ${fileName} [${country}, ${type}]`, 'success');
+                renderQueue();
+                updateStatus();
+            }
+
+            function handleBatch() {
+                if (documentQueue.length === 0) {
+                    addResult('Queue is empty. Add documents first.', 'warning');
+                    return;
+                }
+
+                if (isProcessing) {
+                    addResult('Already processing...', 'warning');
+                    return;
+                }
+
+                isProcessing = true;
+                commandInput.disabled = true;
+                addResult('═══════════════════════════════════════════════════════════', 'info');
+                addResult('STARTING BATCH PROCESSING...', 'info');
+                addResult('═══════════════════════════════════════════════════════════', 'info');
+
+                const batchProcessor = new BatchDocumentProcessor();
+                const documentsToProcess = [...documentQueue];
+                documentQueue = [];
+                renderQueue();
+                updateStatus();
+
+                setTimeout(() => {
+                    const result = batchProcessor.processBatch(documentsToProcess);
+
+                    result.getErrors().forEach(err => {
+                        addResult(`[ERROR] ${err}`, 'error');
+                    });
+
+                    addResult('═══════════════════════════════════════════════════════════', 'info');
+                    addResult(result.getSummary(), 'info');
+                    addResult('═══════════════════════════════════════════════════════════', 'info');
+
+                    processedCount += result.success;
+                    updateStatus();
+                    isProcessing = false;
+                    commandInput.disabled = false;
+                    commandInput.focus();
+                }, 500);
+            }
+
+            function handleClear() {
+                documentQueue = [];
+                processedCount = 0;
+                resultsPanel.innerHTML = '<div class="empty-state">Results will appear here after batch processing.</div>';
+                renderQueue();
+                updateStatus();
+                addResult('Queue and results cleared.', 'info');
+            }
+
+            function handleDemo() {
+                const demoDocs = [
+                    new Document('invoice_co_001.pdf', 'pdf', DocumentType.ELECTRONIC_INVOICE, Country.COLOMBIA, 'Invoice data CUFE=123456'),
+                    new Document('invoice_mx_002.pdf', 'pdf', DocumentType.ELECTRONIC_INVOICE, Country.MEXICO, 'Invoice data without stamp'),
+                    new Document('tax_ar_003.csv', 'csv', DocumentType.TAX_DECLARATION, Country.ARGENTINA, 'Declaration CUIT=30-12345678-9'),
+                    new Document('contract_cl_004.docx', 'docx', DocumentType.LEGAL_CONTRACT, Country.CHILE, 'Contract SIGNATURE=digital_ok')
+                ];
+
+                documentQueue = demoDocs;
+                renderQueue();
+                updateStatus();
+                addResult('Demo documents loaded (4 documents from case study):', 'info');
+                demoDocs.forEach((doc, i) => {
+                    addResult(`  ${i+1}. ${doc.getFileName()} [${doc.getCountry()}, ${doc.getType()}]`, 'info');
+                });
+                addResult('Type "batch" to process them.', 'info');
+            }
+
+            function addResult(message, type = 'info') {
+                const emptyState = resultsPanel.querySelector('.empty-state');
+                if (emptyState) {
+                    emptyState.remove();
+                }
+
+                const line = document.createElement('div');
+                line.className = `result-line ${type}`;
+                line.textContent = message;
+                resultsPanel.appendChild(line);
+                resultsPanel.scrollTop = resultsPanel.scrollHeight;
+            }
+
+            function renderQueue() {
+                queuePanel.innerHTML = '';
+
+                if (documentQueue.length === 0) {
+                    queuePanel.innerHTML = '<div class="empty-state">No documents in queue. Type \'help\' for commands.</div>';
+                    return;
+                }
+
+                documentQueue.forEach((doc, index) => {
+                    const item = document.createElement('div');
+                    item.className = 'document-item pending';
+                    item.innerHTML = `
+                        <div class="document-name">${index + 1}. ${doc.getFileName()}</div>
+                        <div class="document-meta">${doc.getCountry()} | ${doc.getType()} | ${doc.getFormat()}</div>
+                    `;
+                    queuePanel.appendChild(item);
+                });
+            }
+
+            function updateStatus() {
+                queueCountEl.textContent = `Queue: ${documentQueue.length}`;
+                processedCountEl.textContent = `Processed: ${processedCount}`;
+            }
+
+            return {
+                init,
+                addResult
+            };
+        })();
+
+        // Initialize on load
+        document.addEventListener('DOMContentLoaded', TerminalUI.init);
+    </script>
+</body>
+</html>
