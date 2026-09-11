@@ -1,65 +1,71 @@
 # GlobalDocs Solutions - Factory Method Document Processor
 
-A functional HTML terminal implementing the **Factory Method design pattern** with Java-style OOP (ES6 Classes) and a bright, vivid light interface.
+Java project implementing the **Factory Method design pattern** for enterprise document processing across LATAM countries.
 
-## Overview
+## Project Structure
 
-This application demonstrates the Factory Method pattern applied to a multi-country enterprise document processing system. Built following the `factory-method` skill guidelines with proper Java-style class hierarchy.
-
-## Features
-
-- **Factory Method Pattern**: Product, ConcreteProduct, Creator, ConcreteCreator, FactoryProvider
-- **Java-Style OOP**: ES6 Classes with getters, abstract classes, interfaces, enums, static methods
-- **Bright Light UI**: Vivid colors, gradients, responsive design
-- **Batch Processing**: Error isolation per document (one failure doesn't stop the batch)
-- **5 Document Types**: Electronic Invoice, Legal Contract, Financial Report, Digital Certificate, Tax Declaration
-- **4 Countries**: Colombia, Mexico, Argentina, Chile (each with unique regulations)
-- **7 Formats**: pdf, doc, docx, md, csv, txt, xlsx
+```
+factory-method-document-processor/
+├── pom.xml
+├── README.md
+├── agents/
+│   └── AGENT.md                          # Case study definition
+└── src/
+    ├── main/java/com/globaldocs/
+    │   ├── document/
+    │   │   ├── DocumentType.java          # Enum (selection criterion)
+    │   │   ├── Country.java               # Enum (COLOMBIA, MEXICO, ARGENTINA, CHILE)
+    │   │   ├── DocumentFormat.java        # Utility class (supported formats)
+    │   │   ├── Document.java              # Domain model (immutable)
+    │   │   ├── DocumentProcessingException.java  # Custom exception
+    │   │   ├── DocumentProcessor.java     # Product interface
+    │   │   ├── AbstractDocumentProcessor.java    # Abstract product (Template Method)
+    │   │   ├── InvoiceProcessor.java      # ConcreteProduct
+    │   │   ├── ContractProcessor.java     # ConcreteProduct
+    │   │   ├── FinancialReportProcessor.java     # ConcreteProduct
+    │   │   ├── DigitalCertificateProcessor.java  # ConcreteProduct
+    │   │   └── TaxDeclarationProcessor.java      # ConcreteProduct
+    │   ├── factory/
+    │   │   ├── DocumentProcessorFactory.java      # Creator abstract
+    │   │   ├── InvoiceProcessorFactory.java       # ConcreteCreator
+    │   │   ├── ContractProcessorFactory.java      # ConcreteCreator
+    │   │   ├── FinancialReportProcessorFactory.java  # ConcreteCreator
+    │   │   ├── DigitalCertificateProcessorFactory.java  # ConcreteCreator
+    │   │   ├── TaxDeclarationProcessorFactory.java      # ConcreteCreator
+    │   │   └── DocumentProcessorFactoryProvider.java    # Factory Provider
+    │   ├── batch/
+    │   │   ├── BatchResult.java           # Result collector
+    │   │   └── BatchDocumentProcessor.java  # Batch coordinator
+    │   └── gui/
+    │       └── DocumentProcessorGui.java  # Swing GUI
+    └── test/java/com/globaldocs/factory/
+        └── DocumentProcessorFactoryTest.java  # JUnit 5 tests (24 tests)
+```
 
 ## How to Run
 
-### Option 1: Direct Browser (Easiest)
-1. Download or clone this repository
-2. Double-click `main.html` to open in your browser
-3. The terminal will load automatically
+### Prerequisites
+- Java 17 or higher
+- Maven 3.6+
 
-### Option 2: Local Server
+### Run Tests
 ```bash
-# Python 3
-python -m http.server 8000
-
-# Node.js
-npx http-server
-
-# PHP
-php -S localhost:8000
+mvn test
 ```
-Then open `http://localhost:8000/main.html`
 
-## Usage
-
-### Commands
-
-| Command | Description |
-|---------|-------------|
-| `help` | Show all available commands |
-| `demo` | Load 4 sample documents from case study |
-| `batch` | Process all queued documents |
-| `status` | Show queue and processing stats |
-| `clear` | Clear queue and results |
-| `add <type> <country> <format> <filename> <content>` | Add document to queue |
-
-### Quick Demo
-1. Type `demo` and press Enter
-2. Type `batch` and press Enter
-3. Observe: 3/4 succeed, 1 fails (Mexico invoice missing CFDI stamp)
-
-### Example
+### Run GUI
+```bash
+mvn compile exec:java
 ```
-add ELECTRONIC_INVOICE COLOMBIA pdf invoice_001.pdf "Invoice data CUFE=ABC123"
-add LEGAL_CONTRACT ARGENTINA docx contract.docx "Contract SIGNATURE=digital_ok"
-add TAX_DECLARATION MEXICO csv taxes.csv "Declaration RFC=ABC123456"
+Or:
+```bash
+mvn package
+java -cp target/factory-method-document-processor-1.0.0.jar com.globaldocs.gui.DocumentProcessorGui
 ```
+
+### Run from IDE
+1. Import as Maven project
+2. Run `DocumentProcessorGui.java` (main method)
 
 ## Architecture (Factory Method Pattern)
 
@@ -83,28 +89,32 @@ DocumentProcessorFactoryProvider (Single Access Point)
     └── getFactory(DocumentType) → Factory
 ```
 
-### Java-Style Classes
+## Classes (20 Java Files)
 
-| Class | Role | Pattern Element |
-|-------|------|-----------------|
-| `DocumentType` | Enum (static constants) | Selection criterion |
-| `Country` | Enum (static constants) | Country codes |
-| `DocumentFormat` | Utility class | Format validation |
-| `Document` | Domain model | Data transfer object |
-| `DocumentProcessor` | Interface | Product (contract) |
-| `AbstractDocumentProcessor` | Abstract class | Template Method |
-| `InvoiceProcessor` | Concrete class | ConcreteProduct |
-| `ContractProcessor` | Concrete class | ConcreteProduct |
-| `FinancialReportProcessor` | Concrete class | ConcreteProduct |
-| `DigitalCertificateProcessor` | Concrete class | ConcreteProduct |
-| `TaxDeclarationProcessor` | Concrete class | ConcreteProduct |
-| `DocumentProcessorFactory` | Abstract class | Creator |
-| `*ProcessorFactory` (5) | Concrete classes | ConcreteCreator |
-| `DocumentProcessorFactoryProvider` | Static utility | Factory Provider |
-| `DocumentFactory` | Static factory | Document creation |
-| `BatchDocumentProcessor` | Service | Batch coordinator |
-| `BatchResult` | Value object | Result collector |
-| `TerminalUI` | Controller | View/UI handler |
+| Package | Class | Role (GoF) | Description |
+|---------|-------|------------|-------------|
+| `document` | `DocumentType` | Enum | Selection criterion (5 types) |
+| `document` | `Country` | Enum | Country codes + tax authority info |
+| `document` | `DocumentFormat` | Utility | Supported formats validation |
+| `document` | `Document` | Model | Immutable domain object |
+| `document` | `DocumentProcessingException` | Exception | Domain-specific errors |
+| `document` | `DocumentProcessor` | Product (interface) | Processing contract |
+| `document` | `AbstractDocumentProcessor` | Abstract Product | Template Method pattern |
+| `document` | `InvoiceProcessor` | ConcreteProduct | CUFE/CFDI/CAE/TED validation |
+| `document` | `ContractProcessor` | ConcreteProduct | Digital signature validation |
+| `document` | `FinancialReportProcessor` | ConcreteProduct | Argentina xlsx requirement |
+| `document` | `DigitalCertificateProcessor` | ConcreteProduct | Cert authority validation |
+| `document` | `TaxDeclarationProcessor` | ConcreteProduct | RUT/RFC/CUIT/RUT_CHILE |
+| `factory` | `DocumentProcessorFactory` | Creator (abstract) | Factory Method definition |
+| `factory` | `InvoiceProcessorFactory` | ConcreteCreator | Creates InvoiceProcessor |
+| `factory` | `ContractProcessorFactory` | ConcreteCreator | Creates ContractProcessor |
+| `factory` | `FinancialReportProcessorFactory` | ConcreteCreator | Creates FinancialReportProcessor |
+| `factory` | `DigitalCertificateProcessorFactory` | ConcreteCreator | Creates DigitalCertificateProcessor |
+| `factory` | `TaxDeclarationProcessorFactory` | ConcreteCreator | Creates TaxDeclarationProcessor |
+| `factory` | `DocumentProcessorFactoryProvider` | Factory Provider | Single access point |
+| `batch` | `BatchResult` | Value Object | Success/error tracking |
+| `batch` | `BatchDocumentProcessor` | Service | Error-isolated batch processing |
+| `gui` | `DocumentProcessorGui` | View/Controller | Swing GUI |
 
 ## Country-Specific Validations
 
@@ -116,18 +126,14 @@ DocumentProcessorFactoryProvider (Single Access Point)
 | **Certificate** | CERT_AUTHORITY | CERT_AUTHORITY | CERT_AUTHORITY | CERT_AUTHORITY |
 | **Tax Declaration** | RUT | RFC | CUIT | RUT_CHILE |
 
-## Technical Details
+## Key Design Decisions
 
-- **Single file**: `main.html` (HTML + CSS + JavaScript)
-- **No dependencies**: Pure vanilla JavaScript
-- **No build step**: Direct browser execution
-- **Responsive**: Works on desktop and mobile
-- **OOP**: Full ES6 class-based implementation following Java conventions
+1. **One Creator per ConcreteProduct**: Classic GoF variant since there are 5 document types that may grow independently
+2. **Template Method in AbstractDocumentProcessor**: `process()` calls `validateFormat()` → `validateCountryRegulation()` → `doProcess()`
+3. **Factory Provider**: Single access point via `DocumentProcessorFactoryProvider.getFactory()` to decouple client from concrete factories
+4. **Error isolation**: `BatchDocumentProcessor` catches exceptions per document, never stops the batch
+5. **Immutable Document**: Constructor validation with `Objects.requireNonNull`, no setters
 
-## Case Study
+## License
 
-Based on **GlobalDocs Solutions** requirements:
-- **Volume**: 50,000+ documents daily
-- **Countries**: Colombia, Mexico, Argentina, Chile
-- **Challenge**: Different regulations per country
-- **Pattern**: Factory Method (delegates object creation to subclasses)
+MIT License
